@@ -24,7 +24,7 @@ class JoinGameFlow(val gameId: UUID) : FlowLogic<GameDTO>() {
             persist(player)
             GamePlayersDTO.fromEntity(player)
         }
-        val gameDTO = GameDTO.fromEntity(gameService.findGameById(gameId))
+        val gameDTO = GameDTO.fromEntity(game)
         val sessions = this.serviceHub.identityService.getAllIdentities()
                 .filter { it.owningKey != ourIdentity.owningKey }
                 .map { initiateFlow(it.party) }
