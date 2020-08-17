@@ -43,6 +43,6 @@ class GetGamesFlowIT {
         network.runNetwork()
         val gamesList = flowFuture.get()
 
-        assertEquals(gamesList.size, 1)
+        assertEquals(1, gamesList.size)
     }
 }
