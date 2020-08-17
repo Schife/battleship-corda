@@ -1,6 +1,10 @@
 package com.template.webserver
 
 
+import com.r3.battleship.flows.CreateGameFlow
+import com.r3.battleship.flows.GetGamesFlow
+import com.r3.battleship.schemas.GameDTO
+import net.corda.core.messaging.startFlow
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -39,6 +43,19 @@ class Controller(rpc: NodeRPCConnection) {
         games[gameID] = sampleGame
         return ResponseEntity<Game>(sampleGame, HttpStatus.OK)
     }
+
+    @PostMapping(value = ["/test"], produces = ["application/json"])
+    private fun test(): ResponseEntity<Game> {
+        val gameID = UUID.randomUUID().toString()
+        val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
+        val players = listOf(ourIdentity)
+        val sampleGame = Game(gameID,  players, true, false, GameStatus.UNSTARTED)
+
+        var x =  proxy.startFlow(::CreateGameFlow, 4).returnValue.get()
+
+        return ResponseEntity<Game>(sampleGame, HttpStatus.OK)
+    }
+
 
     @PostMapping(value = ["/joinGame"], produces = ["application/json"])
     private fun joinGame(@RequestBody request: JoinGameRequest): ResponseEntity<Game> {
