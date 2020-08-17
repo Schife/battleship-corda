@@ -4,10 +4,10 @@ package com.template.webserver
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import webserver.Coordinate
 import webserver.Game
+import webserver.Placement
 
 /**
  * Define your API endpoints here.
@@ -33,4 +33,21 @@ class Controller(rpc: NodeRPCConnection) {
         sampleGameList.add(sampleGame);
         return ResponseEntity<List<Game>>(sampleGameList, HttpStatus.OK);
     }
+
+    @PostMapping(value = ["/createGame"], produces = ["application/json"])
+    private fun createGame(): ResponseEntity<String> {
+        return ResponseEntity("game-1", HttpStatus.CREATED);
+    }
+
+    @PostMapping(value = ["/startGame"], produces = ["application/json"])
+    private fun startGeme(): ResponseEntity<String> {
+        return ResponseEntity("started", HttpStatus.OK);
+    }
+
+    @PostMapping(value = ["/placeShip"], produces = ["application/json"])
+    private fun placeShip(@RequestBody placement: Placement): ResponseEntity<String> {
+        return ResponseEntity("placed", HttpStatus.OK);
+    }
 }
+
+
