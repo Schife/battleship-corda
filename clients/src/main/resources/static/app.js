@@ -8,10 +8,16 @@ function hideLoader() {
     $("#loader").hide()
 }
 
+$.urlParam = function(name){
+	var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
+	return results[1] || 0;
+}
+
+/***** Home page capabilities *****/
 
 function populateGamesTable(gamesTableId) {
     $.ajax({
-        url: "/games",
+        url: "/battleship/games/",
         beforeSend: function() {
             showLoader();
         },
@@ -30,7 +36,7 @@ function populateGamesTable(gamesTableId) {
 
 function createNewGame(gamesTableId) {
     $.ajax({
-        url: "/createGame",
+        url: "/battleship/createGame",
         method: "POST",
         contentType: "application/json",
         dataType: 'json',
@@ -55,20 +61,14 @@ function renderGames(gamesTableId, gamesPayload) {
         var isJoinable = game.joinable;
         var isStartable = game.startable;
         if (isJoinable == true) {
-            var request = {
-                id: game.id
-            }
             var joinButton = $("<button>", {
                 text: "Join Game",
                 class: "btn btn-success",
                 click: function() {
-                    var url = "/joinGame";
                     $.ajax({
-                            url: url,
+                            url: "/battleship/" + game.id + "/joinGame",
                             method: "POST",
                             contentType: "application/json",
-                            data: JSON.stringify(request),
-                            dataType: 'json',
                             beforeSend: function() {
                                 showLoader();
                             },
@@ -97,7 +97,7 @@ function renderGames(gamesTableId, gamesPayload) {
                 text: "Start Game",
                 class: "btn btn-success",
                 click: function() {
-                    var url = "/startGame";
+                    var url = "/battleship/" + game.id + "/startGame";
                     $.ajax({
                             url: url,
                             method: "POST",
@@ -134,3 +134,64 @@ function renderGames(gamesTableId, gamesPayload) {
     });
 }
 
+/***** Game board page capabilities *****/
+
+function populateGameBoard(gameId) {
+    $.ajax({
+        url: "/battleship/" + gameId + "/gameState",
+        beforeSend: function() {
+            showLoader();
+        },
+        success: function(result) {
+            hideLoader();
+            renderBoard(result);
+        }
+    });
+}
+
+function renderBoard(payload) {
+    var players = Object.keys(payload.playerState);
+    var mapRows = 5;
+    var mapColumns = 5;
+
+    // Draw maps
+    for(var playerIndex = 1; playerIndex <= players.length; playerIndex++) {
+        var playerName = players[playerIndex-1]
+        var playerMap = $("<div>", { id: playerName, class: "container"});
+
+        var playerLabel = playerName;
+        var playerCell = $("<div class='row'>").text(playerLabel);
+        playerMap.append(playerCell);
+
+        for(var row = 1; row <= mapRows; row++) {
+            var rowDiv = $("<div class='row'>");
+            for(var column = 1; column <= mapColumns; column++) {
+                var cell = $("<div>", { "data-row": row, "data-column": column, "data-player": playerName, class: "grid_cell" });
+                rowDiv.append(cell);
+            }
+            playerMap.append(rowDiv);
+        }
+        $("#game_board").append(playerMap);
+    }
+
+    // Draw ship placement
+    if(payload.status == "SHIPS_PLACED") {
+        var shipStartRow = parseInt(payload.placement.start.x);
+        var shipStartColumn = parseInt(payload.placement.start.x);
+        var shipEndRow = parseInt(payload.placement.end.x);
+        var shipEndColumn = parseInt(payload.placement.end.y);
+
+        var myMap = $("[id='" + payload.identity + "']");
+        if(shipStartRow == shipEndRow) {
+            // Ship aligned horizontally
+            for(var column = shipStartColumn; column <= shipEndColumn; column++) {
+                myMap.find("[data-row='" + shipStartRow + "'][data-column='" + column + "']").css('background-color', 'blue');
+            }
+        } else {
+            // Ship aligned vertically
+            for(var row = shipStartRow; row <= shipEndRow; row++) {
+                myMap.find("[data-row='" + shipStartRow + "'][data-column='" + shipStartColumn + "']").css('background-color', 'blue')
+            }
+        }
+    }
+}

@@ -42,10 +42,12 @@ class Controller(rpc: NodeRPCConnection) {
     private fun createGame(): ResponseEntity<Game> {
         var gameGto: GameDTO = proxy.startFlow(::CreateGameFlow, 4).returnValue.get()
         var newGame = DTOModelHelper.toGame(gameGto)
+        // TODO: remove this when we've fully setup persistence.
+        games[newGame.id] = newGame
         return ResponseEntity<Game>(newGame, HttpStatus.OK)
     }
 
-    @PostMapping(value = ["{gameId]/joinGame"], produces = ["application/json"])
+    @PostMapping(value = ["{gameId}/joinGame"], produces = ["application/json"])
     private fun joinGame(@PathVariable gameId:String): ResponseEntity<Game> {
         val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
         val game = games[gameId]!!
@@ -73,7 +75,7 @@ class Controller(rpc: NodeRPCConnection) {
     private fun getGameState(@PathVariable gameId:String): ResponseEntity<GameState> {
         var placement = Placement(Coordinate("3","2"), Coordinate("3","5"))
         var identity = proxy.nodeInfo().legalIdentities.first().name.toString()
-        var gameState = GameState(placement, identity, true, createPlayerStateList(), createShotList())
+        var gameState = GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(), createShotList())
 
         return ResponseEntity(gameState, HttpStatus.OK);
     }

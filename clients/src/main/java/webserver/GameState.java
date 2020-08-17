@@ -7,13 +7,15 @@ public class GameState implements Serializable {
     private Placement placement;
     private String identity;
     private boolean myTurn;
+    private GameStatus status;
     private HashMap<String, Boolean> playerState;
     private HashMap<String, HashMap<Coordinate, String>> shots;
 
-    public GameState(Placement placement, String identity, boolean myTurn, HashMap<String, Boolean> playerState, HashMap<String, HashMap<Coordinate, String>> shots) {
+    public GameState(Placement placement, String identity, boolean myTurn,  GameStatus status, HashMap<String, Boolean> playerState, HashMap<String, HashMap<Coordinate, String>> shots) {
         this.placement = placement;
         this.identity = identity;
         this.myTurn = myTurn;
+        this.status = status;
         this.playerState = playerState;
         this.shots = shots;
     }
@@ -40,6 +42,14 @@ public class GameState implements Serializable {
 
     public void setMyTurn(boolean myTurn) {
         this.myTurn = myTurn;
+    }
+
+    public GameStatus getStatus() {
+        return this.status;
+    }
+
+    public void setStatus() {
+        this.status = status;
     }
 
     public HashMap<String, Boolean> getPlayerState() {
