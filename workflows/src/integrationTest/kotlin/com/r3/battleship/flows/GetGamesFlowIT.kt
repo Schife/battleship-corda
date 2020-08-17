@@ -29,9 +29,6 @@ class GetGamesFlowIT {
             )
         )
         player1 = network.createPartyNode()
-        player2 = network.createPartyNode()
-        player3 = network.createPartyNode()
-        player4 = network.createPartyNode()
     }
 
 
