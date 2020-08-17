@@ -5,15 +5,25 @@ import java.util.HashMap;
 
 public class GameState implements Serializable {
     private Placement placement;
+    private String identity;
     private boolean myTurn;
     private HashMap<String, Boolean> playerState;
-    private HashMap<Coordinate, String> shots;
+    private HashMap<String, HashMap<Coordinate, String>> shots;
 
-    public GameState(Placement placement, boolean myTurn, HashMap<String, Boolean> playerState, HashMap<Coordinate, String> shots) {
+    public GameState(Placement placement, String identity, boolean myTurn, HashMap<String, Boolean> playerState, HashMap<String, HashMap<Coordinate, String>> shots) {
         this.placement = placement;
+        this.identity = identity;
         this.myTurn = myTurn;
         this.playerState = playerState;
         this.shots = shots;
+    }
+
+    public String getIdentity() {
+        return identity;
+    }
+
+    public void setIdentity(String identity) {
+        this.identity = identity;
     }
 
     public Placement getPlacement() {
@@ -40,11 +50,11 @@ public class GameState implements Serializable {
         this.playerState = playerState;
     }
 
-    public HashMap<Coordinate, String> getShots() {
+    public HashMap<String, HashMap<Coordinate, String>> getShots() {
         return shots;
     }
 
-    public void setShots(HashMap<Coordinate, String> shots) {
+    public void setShots(HashMap<String, HashMap<Coordinate, String>> shots) {
         this.shots = shots;
     }
 }
