@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import webserver.Coordinate
 import webserver.Game
+import webserver.JoinGameRequest
 import webserver.Placement
 import java.util.*
 import kotlin.collections.ArrayList
@@ -23,13 +24,13 @@ class Controller(rpc: NodeRPCConnection) {
     }
 
     private val proxy = rpc.proxy
-    
+
     // TODO: store games in the node DB and retrieve them from there.
-    private val games = mutableListOf<Game>()
+    private val games = mutableMapOf<String, Game>()
 
     @GetMapping(value = ["/games"], produces = ["application/json"])
     private fun games(): ResponseEntity<List<Game>> {
-        return ResponseEntity<List<Game>>(games, HttpStatus.OK);
+        return ResponseEntity<List<Game>>(games.values.toList(), HttpStatus.OK);
     }
 
     @PostMapping(value = ["/createGame"], produces = ["application/json"])
@@ -37,7 +38,20 @@ class Controller(rpc: NodeRPCConnection) {
         val gameID = UUID.randomUUID().toString()
         val players = listOf("player-1", "player-2")
         val sampleGame = Game(gameID,  players, true, false)
+        games[gameID] = sampleGame
         return ResponseEntity<Game>(sampleGame, HttpStatus.OK)
+    }
+
+    @PostMapping(value = ["/joinGame"], produces = ["application/json"])
+    private fun joinGame(@RequestBody request: JoinGameRequest): ResponseEntity<Game> {
+        val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
+        val game = games[request.id]!!
+        game.players = game.players + ourIdentity
+        game.isJoinable = false
+        if (game.players.size == 4) {
+            game.isStartable = true
+        }
+        return ResponseEntity<Game>(game, HttpStatus.OK)
     }
 
     @PostMapping(value = ["/startGame"], produces = ["application/json"])

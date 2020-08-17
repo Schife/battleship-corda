@@ -10,8 +10,6 @@ function hideLoader() {
 
 
 function populateGamesTable(gamesTableId) {
-    //TODO:
-    // - Replace join/start columns with proper action buttons wired to the web APIs.
     $.ajax({
         url: "/games",
         beforeSend: function() {
@@ -51,11 +49,42 @@ function renderGames(gamesTableId, gamesPayload) {
         var isJoinable = game.joinable;
         var isStartable = game.startable;
         if (isJoinable == true) {
-            var joinColumn = $("<td>").append("start");
+            var request = {
+                id: game.id
+            }
+            var joinButton = $("<button>", {
+                text: "Join Game",
+                class: "btn btn-success",
+                click: function() {
+                    var url = "/joinGame";
+                    $.ajax({
+                            url: url,
+                            method: "POST",
+                            contentType: "application/json",
+                            data: JSON.stringify(request),
+                            dataType: 'json',
+                            beforeSend: function() {
+                                showLoader();
+                            },
+                            success: function( result ) {
+                                hideLoader();
+
+                                //remove game from table and re-insert the updated one.
+                                $("#" + game.id).remove()
+                                var newGames = []
+                                newGames.push(result)
+                                renderGames(gamesTableId, newGames)
+                            }
+                        });
+                }
+            });
+            var joinColumn = $("<td>").append(joinButton);
         } else {
             var joinColumn = $("<td>").append("-");
         }
 
+        //TODO:
+        // - Replace join/start columns with proper action buttons wired to the web APIs.
         if (isStartable == true) {
             var startColumn = $("<td>").append("start");
         } else {
@@ -63,7 +92,7 @@ function renderGames(gamesTableId, gamesPayload) {
         }
         var playersJoinedColumn = $("<td>").append(playersList);
 
-        var gameRow = $("<tr>");
+        var gameRow = $("<tr>", { id: game.id });
         gameRow.append(gameIdColumn);
         gameRow.append(playersJoinedColumn);
         gameRow.append(joinColumn);
