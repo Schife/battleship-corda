@@ -16,5 +16,16 @@ class GameService(val serviceHub: ServiceHub) : SingletonSerializeAsToken() {
         }
     }
 
+    fun getAllGames() : List<GameSchemaV1.Game> {
+        return serviceHub.withEntityManager {
+            createQuery("select g from GameSchemaV1\$Game g where g.gameStatus = 'CREATED'", GameSchemaV1.Game::class.java).resultList
+        }
+    }
+
+    fun startGameByID(id: UUID) {
+        return serviceHub.withEntityManager {
+            createQuery("update GameSchemaV1\$Game g set g.gameStatus = 'ACTIVE' where g.gameId = '$id'").executeUpdate()
+        }
+    }
 
 }

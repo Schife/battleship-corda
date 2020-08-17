@@ -27,4 +27,10 @@ public class Coordinate implements Serializable {
     public void setY(String y) {
         this.y = y;
     }
+
+    @Override
+    public String toString() {
+        return x+","+y;
+    }
+
 }

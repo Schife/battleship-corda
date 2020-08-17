@@ -17,7 +17,13 @@ function populateGamesTable(gamesTableId) {
         },
         success: function(result) {
             hideLoader();
-            renderGames(gamesTableId, result)
+            var startedGames = result.filter(game => game.status == "STARTED")
+            if (startedGames.length > 0) {
+                var firstStartedGame = result[0]
+                location.replace("/game.html?id=" + firstStartedGame.id)
+            } else {
+                renderGames(gamesTableId, result)
+            }
         }
     });
 }
@@ -83,10 +89,33 @@ function renderGames(gamesTableId, gamesPayload) {
             var joinColumn = $("<td>").append("-");
         }
 
-        //TODO:
-        // - Replace join/start columns with proper action buttons wired to the web APIs.
         if (isStartable == true) {
-            var startColumn = $("<td>").append("start");
+            var request = {
+                id: game.id
+            }
+            var startButton = $("<button>", {
+                text: "Start Game",
+                class: "btn btn-success",
+                click: function() {
+                    var url = "/startGame";
+                    $.ajax({
+                            url: url,
+                            method: "POST",
+                            contentType: "application/json",
+                            data: JSON.stringify(request),
+                            dataType: 'json',
+                            beforeSend: function() {
+                                showLoader();
+                            },
+                            success: function( result ) {
+                                hideLoader();
+
+                                location.replace("/game.html?id=" + game.id)
+                            }
+                        });
+                }
+            });
+            var startColumn = $("<td>").append(startButton);
         } else {
             var startColumn = $("<td>").append("-");
         }
