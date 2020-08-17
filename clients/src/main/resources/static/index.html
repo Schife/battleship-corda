@@ -2,9 +2,49 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <!-- CSS only -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js"></script>
+
     <title>Example front-end.</title>
 </head>
 <body>
-    <div>Define your front-end here.</div>
+    <div id="loader">
+        <div></div>
+    </div>
+
+    <div>
+        <div class="m-5">
+            <h4>Games</h4>
+            <table class="table table-striped table-bordered table-hover" id="games-table">
+                <thead class="thead-dark">
+                <tr>
+                    <th>Game ID</th>
+                    <th>Players already joined</th>
+                    <th>Join the game</th>
+                    <th>Start the game</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <a id="create_game_button" class="btn btn-primary" role="button">Create a new game</a>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            populateGamesTable("games-table");
+
+            $("#create_game_button").click(function() {
+                createNewGame("games-table");
+            })
+        })
+    </script>
 </body>
 </html>

@@ -1,9 +1,16 @@
 package com.template.webserver
 
+
 import org.slf4j.LoggerFactory
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.*
+import webserver.Coordinate
+import webserver.Game
+import webserver.JoinGameRequest
+import webserver.Placement
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Define your API endpoints here.
@@ -18,8 +25,44 @@ class Controller(rpc: NodeRPCConnection) {
 
     private val proxy = rpc.proxy
 
-    @GetMapping(value = ["/templateendpoint"], produces = ["text/plain"])
-    private fun templateendpoint(): String {
-        return "Define an endpoint here."
+    // TODO: store games in the node DB and retrieve them from there.
+    private val games = mutableMapOf<String, Game>()
+
+    @GetMapping(value = ["/games"], produces = ["application/json"])
+    private fun games(): ResponseEntity<List<Game>> {
+        return ResponseEntity<List<Game>>(games.values.toList(), HttpStatus.OK);
+    }
+
+    @PostMapping(value = ["/createGame"], produces = ["application/json"])
+    private fun createGame(): ResponseEntity<Game> {
+        val gameID = UUID.randomUUID().toString()
+        val players = listOf("player-1", "player-2")
+        val sampleGame = Game(gameID,  players, true, false)
+        games[gameID] = sampleGame
+        return ResponseEntity<Game>(sampleGame, HttpStatus.OK)
+    }
+
+    @PostMapping(value = ["/joinGame"], produces = ["application/json"])
+    private fun joinGame(@RequestBody request: JoinGameRequest): ResponseEntity<Game> {
+        val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
+        val game = games[request.id]!!
+        game.players = game.players + ourIdentity
+        game.isJoinable = false
+        if (game.players.size == 4) {
+            game.isStartable = true
+        }
+        return ResponseEntity<Game>(game, HttpStatus.OK)
+    }
+
+    @PostMapping(value = ["/startGame"], produces = ["application/json"])
+    private fun startGame(): ResponseEntity<String> {
+        return ResponseEntity("started", HttpStatus.OK);
+    }
+
+    @PostMapping(value = ["/placeShip"], produces = ["application/json"])
+    private fun placeShip(@RequestBody placement: Placement): ResponseEntity<String> {
+        return ResponseEntity("placed", HttpStatus.OK);
     }
 }
+
+
