@@ -2,6 +2,8 @@ package com.template.webserver
 
 
 import com.r3.battleship.flows.CreateGameFlow
+import com.r3.battleship.flows.GetGamesFlow
+import com.r3.battleship.schemas.GameDTO
 import net.corda.core.messaging.startFlow
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -9,6 +11,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import webserver.*
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
 /**
@@ -29,6 +32,8 @@ class Controller(rpc: NodeRPCConnection) {
 
     @GetMapping(value = ["/games"], produces = ["application/json"])
     private fun games(): ResponseEntity<List<Game>> {
+        var x: List<GameDTO> = proxy.startFlow(::GetGamesFlow).returnValue.get()
+
         return ResponseEntity<List<Game>>(games.values.toList(), HttpStatus.OK);
     }
 
@@ -80,7 +85,7 @@ class Controller(rpc: NodeRPCConnection) {
 
     private fun createPlayerStateList(): HashMap<String, Boolean> {
         val map = HashMap<String, Boolean>()
-        map.put("player1", true)
+        map.put("O=PartyA, L=London, C=GB", true)
         map.put("player2", true)
         map.put("player3", true)
         map.put("player4", true)
@@ -101,7 +106,7 @@ class Controller(rpc: NodeRPCConnection) {
         map.put(c4, "MISS")
 
         val playerMap = HashMap<String, HashMap<Coordinate, String>>()
-        playerMap.put("player1", map)
+        playerMap.put("O=PartyA, L=London, C=GB", map)
         playerMap.put("player2", map)
 
         return playerMap;
