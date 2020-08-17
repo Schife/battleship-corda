@@ -31,6 +31,6 @@ class Controller(rpc: NodeRPCConnection) {
         listPlayers.add("player2")
         sampleGame.players =listPlayers
         sampleGameList.add(sampleGame);
-        return ResponseEntity<List<Game>>(sampleGameList, HttpStatus.CREATED);
+        return ResponseEntity<List<Game>>(sampleGameList, HttpStatus.OK);
     }
 }
