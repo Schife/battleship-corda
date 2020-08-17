@@ -32,22 +32,17 @@ class Controller(rpc: NodeRPCConnection) {
 
     @GetMapping(value = ["/games"], produces = ["application/json"])
     private fun games(): ResponseEntity<List<Game>> {
-        var x: List<GameDTO> = proxy.startFlow(::GetGamesFlow).returnValue.get()
-
-        return ResponseEntity<List<Game>>(games.values.toList(), HttpStatus.OK);
+        var gameDTOList: List<GameDTO> = proxy.startFlow(::GetGamesFlow).returnValue.get()
+        var games = ArrayList<Game>()
+        gameDTOList.forEach { gameDTO -> games.add(DTOModelHelper.toGame(gameDTO)) }
+        return ResponseEntity<List<Game>>(games, HttpStatus.OK);
     }
 
     @PostMapping(value = ["/createGame"], produces = ["application/json"])
     private fun createGame(): ResponseEntity<Game> {
-        val gameID = UUID.randomUUID().toString()
-        val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
-        val players = listOf(ourIdentity)
-        val sampleGame = Game(gameID,  players, true, false, GameStatus.UNSTARTED)
-        games[gameID] = sampleGame
-
-        var x =  proxy.startFlow(::CreateGameFlow, 4).returnValue.get()
-
-        return ResponseEntity<Game>(sampleGame, HttpStatus.OK)
+        var gameGto: GameDTO = proxy.startFlow(::CreateGameFlow, 4).returnValue.get()
+        var newGame = DTOModelHelper.toGame(gameGto)
+        return ResponseEntity<Game>(newGame, HttpStatus.OK)
     }
 
     @PostMapping(value = ["{gameId]/joinGame"], produces = ["application/json"])
@@ -65,7 +60,7 @@ class Controller(rpc: NodeRPCConnection) {
     @PostMapping(value = ["/{gameId}/startGame"], produces = ["application/json"])
     private fun startGame(@PathVariable gameId:String, @RequestBody request: StartGameRequest): ResponseEntity<Game> {
         val game = games[gameId]!!
-        game.status = GameStatus.STARTED
+        game.status = GameStatus.ACTIVE
         return ResponseEntity<Game>(game, HttpStatus.OK)
     }
 
