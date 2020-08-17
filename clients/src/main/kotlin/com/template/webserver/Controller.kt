@@ -5,12 +5,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import webserver.Coordinate
-import webserver.Game
-import webserver.JoinGameRequest
-import webserver.Placement
+import webserver.*
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 /**
  * Define your API endpoints here.
@@ -62,6 +60,46 @@ class Controller(rpc: NodeRPCConnection) {
     @PostMapping(value = ["/placeShip"], produces = ["application/json"])
     private fun placeShip(@RequestBody placement: Placement): ResponseEntity<String> {
         return ResponseEntity("placed", HttpStatus.OK);
+    }
+
+    @GetMapping(value = ["/gameState/{gameId}"], produces = ["application/json"])
+    private fun getGameState(@PathVariable gameId:String): ResponseEntity<GameState> {
+        var placement = Placement(Coordinate("3","2"), Coordinate("3","5"))
+        var gameState = GameState(placement, true, createPlayerStateList(), createShotList())
+
+        return ResponseEntity(gameState, HttpStatus.OK);
+    }
+
+    private fun createPlayerStateList(): HashMap<String, Boolean> {
+        val map = HashMap<String, Boolean>()
+        map.put("player1", true)
+        map.put("player2", true)
+        map.put("player3", true)
+        map.put("player4", true)
+
+        return map;
+    }
+
+    private fun createShotList(): HashMap<Coordinate, String> {
+        val c = Coordinate("3","4")
+        val c2 = Coordinate("3","5")
+        val c3 = Coordinate("2","2")
+        val c4 = Coordinate("3","4")
+        val c5 = Coordinate("1","7")
+        val c6 = Coordinate("2","7")
+        val c7 = Coordinate("7","3")
+        val c8 = Coordinate("8","8")
+        val map = HashMap<Coordinate, String>()
+        map.put(c, "HIT")
+        map.put(c2, "HIT")
+        map.put(c3, "MISS")
+        map.put(c4, "MISS")
+        map.put(c5, "HIT")
+        map.put(c6, "HIT")
+        map.put(c7, "MISS")
+        map.put(c8, "MISS")
+
+        return map;
     }
 }
 
