@@ -41,6 +41,5 @@ class CreateGameFlowResponder(val counterpartySession: FlowSession) : FlowLogic<
         serviceHub.withEntityManager {
             persist(gameDTO.toEntity())
         }
-        println("In party responder" + gameDTO)
     }
 }

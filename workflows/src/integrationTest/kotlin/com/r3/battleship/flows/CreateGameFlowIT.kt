@@ -1,6 +1,7 @@
 package com.r3.battleship.flows
 
 import com.r3.battleship.repository.GameService
+import com.r3.battleship.schemas.GameDTO
 import net.corda.testing.common.internal.testNetworkParameters
 import net.corda.testing.node.*
 import org.junit.After
@@ -37,6 +38,31 @@ class CreateGameFlowIT {
         network.runNetwork()
         val game = flowFuture.get()
 
+        validateAllPlayers(game)
+    }
+
+    @Test
+    fun `test JoinGameFlow happy path`() {
+        val flowFuture = player1.startFlow(CreateGameFlow())
+        network.runNetwork()
+        var game = flowFuture.get()
+
+        val joinGamePlayer2Future = player2.startFlow(JoinGameFlow(game.gameId))
+        network.runNetwork()
+        game = joinGamePlayer2Future.get()
+
+        val joinGamePlayer3Future = player3.startFlow(JoinGameFlow(game.gameId))
+        network.runNetwork()
+        game = joinGamePlayer3Future.get()
+
+        val joinGamePlayer4Future = player4.startFlow(JoinGameFlow(game.gameId))
+        network.runNetwork()
+        game = joinGamePlayer4Future.get()
+
+        validateAllPlayers(game)
+    }
+
+    private fun validateAllPlayers(game: GameDTO) {
         val player1GameService = player1.services.cordaService(GameService::class.java)
         val player2GameService = player2.services.cordaService(GameService::class.java)
         val player3GameService = player3.services.cordaService(GameService::class.java)
