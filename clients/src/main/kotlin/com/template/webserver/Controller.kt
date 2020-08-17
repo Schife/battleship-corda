@@ -34,8 +34,8 @@ class Controller(rpc: NodeRPCConnection) {
     @PostMapping(value = ["/createGame"], produces = ["application/json"])
     private fun createGame(): ResponseEntity<Game> {
         val gameID = UUID.randomUUID().toString()
-        val players = listOf("player-1", "player-2")
-        val sampleGame = Game(gameID,  players, true, false)
+        val players = listOf("player-1", "player-2", "player-3")
+        val sampleGame = Game(gameID,  players, true, false, GameStatus.UNSTARTED)
         games[gameID] = sampleGame
         return ResponseEntity<Game>(sampleGame, HttpStatus.OK)
     }
@@ -53,8 +53,10 @@ class Controller(rpc: NodeRPCConnection) {
     }
 
     @PostMapping(value = ["/startGame"], produces = ["application/json"])
-    private fun startGame(): ResponseEntity<String> {
-        return ResponseEntity("started", HttpStatus.OK);
+    private fun startGame(@RequestBody request: StartGameRequest): ResponseEntity<Game> {
+        val game = games[request.id]!!
+        game.status = GameStatus.STARTED
+        return ResponseEntity<Game>(game, HttpStatus.OK)
     }
 
     @PostMapping(value = ["/placeShip"], produces = ["application/json"])

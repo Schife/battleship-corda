@@ -8,12 +8,14 @@ public class Game implements Serializable {
     private List<String> players;
     private boolean joinable;
     private boolean startable;
+    private GameStatus status;
 
-    public Game(String id, List<String> players, boolean joinable, boolean startable) {
+    public Game(String id, List<String> players, boolean joinable, boolean startable, GameStatus status) {
         this.id = id;
         this.players = players;
         this.joinable = joinable;
         this.startable = startable;
+        this.status = status;
     }
 
     public String getId() {
@@ -46,5 +48,13 @@ public class Game implements Serializable {
 
     public void setStartable(boolean startable) {
         this.startable = startable;
+    }
+
+    public GameStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(GameStatus status) {
+        this.status = status;
     }
 }
