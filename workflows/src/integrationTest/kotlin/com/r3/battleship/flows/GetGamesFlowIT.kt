@@ -32,13 +32,13 @@ class GetGamesFlowIT {
         player2 = network.createPartyNode()
         player3 = network.createPartyNode()
         player4 = network.createPartyNode()
-        player1.startFlow(CreateGameFlow())
-        network.runNetwork()
     }
 
 
     @Test
     fun `test GetGamesFlow`() {
+        player1.startFlow(CreateGameFlow())
+        network.runNetwork()
         val flowFuture = player1.startFlow(GetGamesFlow())
         network.runNetwork()
         val gamesList = flowFuture.get()

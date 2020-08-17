@@ -18,7 +18,7 @@ class GameService(val serviceHub: ServiceHub) : SingletonSerializeAsToken() {
 
     fun getAllGames() : List<GameSchemaV1.Game> {
         return serviceHub.withEntityManager {
-            createQuery("from Game where gameStatus = 'CREATED'")
+            createQuery("select g from Game g where g.gameStatus = 'CREATED'")
         }.resultList as List<GameSchemaV1.Game>
     }
 
