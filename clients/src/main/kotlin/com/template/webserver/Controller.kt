@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.*
 import webserver.Coordinate
 import webserver.Game
 import webserver.Placement
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Define your API endpoints here.
@@ -21,26 +23,25 @@ class Controller(rpc: NodeRPCConnection) {
     }
 
     private val proxy = rpc.proxy
+    
+    // TODO: store games in the node DB and retrieve them from there.
+    private val games = mutableListOf<Game>()
 
     @GetMapping(value = ["/games"], produces = ["application/json"])
     private fun games(): ResponseEntity<List<Game>> {
-        val sampleGameList = ArrayList<Game>();
-        var sampleGame = Game("game-1",  null, true, false)
-        val listPlayers = ArrayList<String>()
-        listPlayers.add("player1")
-        listPlayers.add("player2")
-        sampleGame.players =listPlayers
-        sampleGameList.add(sampleGame);
-        return ResponseEntity<List<Game>>(sampleGameList, HttpStatus.OK);
+        return ResponseEntity<List<Game>>(games, HttpStatus.OK);
     }
 
     @PostMapping(value = ["/createGame"], produces = ["application/json"])
-    private fun createGame(): ResponseEntity<String> {
-        return ResponseEntity("game-1", HttpStatus.CREATED);
+    private fun createGame(): ResponseEntity<Game> {
+        val gameID = UUID.randomUUID().toString()
+        val players = listOf("player-1", "player-2")
+        val sampleGame = Game(gameID,  players, true, false)
+        return ResponseEntity<Game>(sampleGame, HttpStatus.OK)
     }
 
     @PostMapping(value = ["/startGame"], produces = ["application/json"])
-    private fun startGeme(): ResponseEntity<String> {
+    private fun startGame(): ResponseEntity<String> {
         return ResponseEntity("started", HttpStatus.OK);
     }
 

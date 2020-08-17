@@ -24,6 +24,24 @@ function populateGamesTable(gamesTableId) {
     });
 }
 
+function createNewGame(gamesTableId) {
+    $.ajax({
+        url: "/createGame",
+        method: "POST",
+        contentType: "application/json",
+        dataType: 'json',
+        beforeSend: function() {
+            showLoader();
+        },
+        success: function( result ) {
+            hideLoader();
+            var newGames = []
+            newGames.push(result)
+            renderGames(gamesTableId, newGames)
+        }
+    });
+}
+
 function renderGames(gamesTableId, gamesPayload) {
     var tableItems = gamesPayload.map(game => {
         var gameIdColumn = $("<td>").text(game.id);
@@ -57,3 +75,4 @@ function renderGames(gamesTableId, gamesPayload) {
         $('#' + gamesTableId + " tbody").append(element);
     });
 }
+

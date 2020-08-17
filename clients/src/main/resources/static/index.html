@@ -33,11 +33,17 @@
                 </tbody>
             </table>
         </div>
+
+        <a id="create_game_button" class="btn btn-primary" role="button">Create a new game</a>
     </div>
 
     <script>
         $(document).ready(function(){
             populateGamesTable("games-table");
+
+            $("#create_game_button").click(function() {
+                createNewGame("games-table");
+            })
         })
     </script>
 </body>
