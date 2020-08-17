@@ -22,4 +22,10 @@ class GameService(val serviceHub: ServiceHub) : SingletonSerializeAsToken() {
         }
     }
 
+    fun startGameByID(id: UUID) {
+        return serviceHub.withEntityManager {
+            createQuery("update GameSchemaV1\$Game g set g.gameStatus = 'ACTIVE' where g.gameId = '$id'").executeUpdate()
+        }
+    }
+
 }
