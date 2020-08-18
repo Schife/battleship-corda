@@ -58,4 +58,16 @@ class GameService(val serviceHub: ServiceHub) : SingletonSerializeAsToken() {
         }
     }
 
+    fun getPlayerByID(id: UUID, player: String) : GameSchemaV1.GamePlayers {
+        return serviceHub.withEntityManager {
+            createQuery("select p from GameSchemaV1\$GamePlayers p where p.game = '$id' and p.gamePlayerName = '$player'", GameSchemaV1.GamePlayers::class.java).singleResult
+        }
+    }
+
+    fun sinkPlayerByID(id: UUID, player: String) {
+        return serviceHub.withEntityManager {
+            createQuery("update GameSchemaV1\$GamePlayers p set p.playerStatus = 'SUNK' where p.game = '$id' and p.gamePlayerName = '$player'").executeUpdate()
+        }
+    }
+
 }
