@@ -4,7 +4,6 @@ import com.r3.battleship.schemas.*;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -15,7 +14,7 @@ public class DTOModelHelper {
         List<String> players = new ArrayList<>();
         for (GamePlayersDTO gamePlayersDTO : gameDTO.getGamePlayers()) {
             players.add(gamePlayersDTO.getGamePlayerName());
-        };
+        }
         String status = gameDTO.getGameStatus().name();
 
         Game game = new Game(gameDTO.getGameId().toString(), players, (!players.contains(ourPlayer)), (players.size() == gameDTO.getNumberOfPlayers()), GameStatus.valueOf(status));
@@ -38,7 +37,20 @@ public class DTOModelHelper {
 
         GameDTO latestGame = null;
         if (CollectionUtils.isNotEmpty(turns)) {
+            int currentRound = 0;
+            boolean haveIMovedThisRound = false;
+
             for (HitPositionDTO hitPositionDTO :turns) {
+                //have i moved this round?
+                if (currentRound < hitPositionDTO.getRoundNum()) {
+                    currentRound = hitPositionDTO.getRoundNum();
+                    haveIMovedThisRound = false;
+                }
+
+                if (ourPlayer.equals(hitPositionDTO.getGamePlayer().getGamePlayerName())) {
+                    haveIMovedThisRound = true;
+                };
+
                 //add players shots to map
                 HashMap<Coordinate, String> hitMap = new HashMap<>();
                 Coordinate coordinate = new Coordinate(hitPositionDTO.getHitX(), hitPositionDTO.getHitY());
@@ -49,19 +61,12 @@ public class DTOModelHelper {
                 latestGame = hitPositionDTO.getGame();
             }
 
-            List<GamePlayersDTO> gamePlayersDTOList = latestGame.getGamePlayers();
-            HashMap<String, Boolean> playerStates = new HashMap<>();
-
-            for (GamePlayersDTO gamePlayer : gamePlayersDTOList) {
-                boolean isAlive = PlayerStatus.ACTIVE == gamePlayer.getPlayerStatus();
-                playerStates.put(gamePlayer.getGamePlayerName(), isAlive);
-            }
+            HashMap<String, Boolean> playerStates = DTOModelHelper.getPlayerStates(latestGame.getGamePlayers());
+            gameState.setPlayerState(playerStates);
 
             gameState.setStatus(GameStatus.valueOf(latestGame.getGameStatus().name()));
-            gameState.setPlayerState(playerStates);
             gameState.setShots(shots);
-            //TODO: figure out if its our turn
-            gameState.setMyTurn(true);
+            gameState.setMyTurn(!haveIMovedThisRound);
 
             if (gameState.getStatus() == GameStatus.DONE) {
                 gameState.setWinner(getWinner(playerStates));
@@ -69,6 +74,17 @@ public class DTOModelHelper {
         }
 
         return gameState;
+    }
+
+    private static HashMap<String, Boolean> getPlayerStates(List<GamePlayersDTO> gamePlayersDTOList) {
+        HashMap<String, Boolean> playerStates = new HashMap<>();
+
+        for (GamePlayersDTO gamePlayer : gamePlayersDTOList) {
+            boolean isAlive = PlayerStatus.ACTIVE == gamePlayer.getPlayerStatus();
+            playerStates.put(gamePlayer.getGamePlayerName(), isAlive);
+        }
+
+        return playerStates;
     }
 
     private static String getWinner(HashMap<String, Boolean> playerStates) {
