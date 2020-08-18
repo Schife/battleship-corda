@@ -185,6 +185,7 @@ function populateGameBoard(gameId) {
 }
 
 function placeShip(gameId, fromX, fromY, toX, toY) {
+    new Audio("ship_horn.mp3").play();
     $.ajax({
         url: "/battleship/" + gameId + "/placeShip",
         method: "POST",
