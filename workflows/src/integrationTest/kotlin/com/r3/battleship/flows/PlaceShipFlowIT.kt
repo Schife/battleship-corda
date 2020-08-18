@@ -130,6 +130,28 @@ class PlaceShipFlowIT {
         player4.startFlow(SendAttackFlow(game.gameId,"Player1", 1, 1, 1))
         network.runNetwork()
 
+        player1.startFlow(SendAttackFlow(game.gameId,"Player2", 2, 2, 2))
+        network.runNetwork()
+        player2.startFlow(SendAttackFlow(game.gameId,"Player1", 3, 1, 2))
+        network.runNetwork()
+        player3.startFlow(SendAttackFlow(game.gameId,"Player1", 2, 1, 2))
+        network.runNetwork()
+
+        player2.startFlow(SendAttackFlow(game.gameId,"Player3", 3, 1, 3))
+        network.runNetwork()
+        player3.startFlow(SendAttackFlow(game.gameId,"Player2", 2, 3, 3))
+        network.runNetwork()
+
+        player2.startFlow(SendAttackFlow(game.gameId,"Player3", 3, 1, 4))
+        network.runNetwork()
+        player3.startFlow(SendAttackFlow(game.gameId,"Player2", 2, 4, 4))
+        network.runNetwork()
+
+
+        val summaryFuture = player3.startFlow(GetGameSummaryFlow(game.gameId))
+        network.runNetwork()
+        val summary = summaryFuture.get()
+
         val player4GameService = player4.services.cordaService(GameService::class.java)
         val player4DTO = player4GameService.getPlayerByID(game.gameId, player4.info.legalIdentities[0].toString())
         assertEquals(PlayerStatus.SUNKEN, player4DTO.playerStatus)
