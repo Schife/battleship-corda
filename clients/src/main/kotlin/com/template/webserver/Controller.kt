@@ -5,6 +5,7 @@ import com.r3.battleship.flows.*
 import com.r3.battleship.schemas.GameDTO
 import com.r3.battleship.schemas.HitPositionDTO
 import com.r3.battleship.schemas.ShipPositionDTO
+import net.corda.core.flows.FlowException
 import net.corda.core.messaging.startFlow
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -93,10 +94,16 @@ class Controller(rpc: NodeRPCConnection) {
         } else {
             val hitPositionDTOList : List<HitPositionDTO> = proxy.startFlow(::GetGameHitsFlow, UUID.fromString(gameId)).returnValue.get()
             gameState = DTOModelHelper.toGameState(hitPositionDTOList, identity);
+
             try {
                 val shipPositionDTO: ShipPositionDTO = proxy.startFlow(::GetMyShipsPositionFlow, UUID.fromString(gameId)).returnValue.get();
                 gameState.placement = DTOModelHelper.toPlacement(shipPositionDTO)
             } catch(e: Exception) {}
+
+            if (gameState.placement == null && hitPositionDTOList.isEmpty()) {
+                gameState.isMyTurn = true
+                gameState.status = GameStatus.ACTIVE
+            }
         }
 
         return ResponseEntity(gameState, HttpStatus.OK);
