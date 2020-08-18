@@ -14,6 +14,10 @@ public class GameState implements Serializable {
     private String winner;
     private Map<String, Placement> playersShipLocations;
 
+    public GameState() {
+
+    }
+
     public GameState(Placement placement,
                      String identity,
                      boolean myTurn,
@@ -60,7 +64,7 @@ public class GameState implements Serializable {
         return this.status;
     }
 
-    public void setStatus() {
+    public void setStatus(GameStatus status) {
         this.status = status;
     }
 
@@ -95,4 +99,5 @@ public class GameState implements Serializable {
     public void setPlayersShipLocations(Map<String, Placement> playersShipLocations) {
         this.playersShipLocations = playersShipLocations;
     }
+
 }

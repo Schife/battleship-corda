@@ -4,27 +4,27 @@ import java.io.Serializable;
 import java.util.List;
 
 public class Coordinate implements Serializable {
-    private String x;
-    private String y;
+    private int x;
+    private int y;
 
-    public Coordinate(String x, String y) {
+    public Coordinate(int x, int y) {
         this.x = x;
         this.y = y;
     }
 
-    public String getX() {
+    public int getX() {
         return x;
     }
 
-    public void setX(String x) {
+    public void setX(int x) {
         this.x = x;
     }
 
-    public String getY() {
+    public int getY() {
         return y;
     }
 
-    public void setY(String y) {
+    public void setY(int y) {
         this.y = y;
     }
 
