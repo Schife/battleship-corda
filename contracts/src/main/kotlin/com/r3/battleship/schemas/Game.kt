@@ -42,21 +42,40 @@ data class GameDTO(val gameId: UUID, val createdOn: Instant, val createdBy: Stri
 }
 
 @CordaSerializable
-data class GamePlayersDTO(val gamePlayerName: String, val playerStatus: PlayerStatus, val game: UUID) {
+data class GamePlayersDTO(val gamePlayerName: String, val playerStatus: PlayerStatus, val playerRegion: Int, val game: UUID) {
     companion object {
         fun fromEntity(entity: GameSchemaV1.GamePlayers) =
-                GamePlayersDTO(entity.gamePlayerName, entity.playerStatus, entity.game)
+                GamePlayersDTO(entity.gamePlayerName, entity.playerStatus, entity.playerRegion, entity.game)
     }
 
     fun toEntity() =
-            GameSchemaV1.GamePlayers(this.gamePlayerName, this.playerStatus, this.game)
+            GameSchemaV1.GamePlayers(this.gamePlayerName, this.playerStatus, this.playerRegion, this.game)
+}
+
+@CordaSerializable
+data class ShipPositionDTO(val id: Long, val gamePlayer: GamePlayersDTO, val game: GameDTO, val fromX: Int?, val fromY: Int?,
+                           val toX: Int?, val toY: Int?, val signedPosition: String) {
+
+    companion object {
+        fun fromEntity(entity: GameSchemaV1.ShipPosition) =
+                ShipPositionDTO(entity.id, GamePlayersDTO.fromEntity(entity.gamePlayer!!),
+                        GameDTO.fromEntity(entity.game!!), entity.fromX, entity.fromY, entity.toX, entity.toY,
+                        entity.signedPosition)
+    }
+
+    fun toEntity() : GameSchemaV1.ShipPosition {
+        val shipPosition = GameSchemaV1.ShipPosition(this.gamePlayer.toEntity(), this.game.toEntity(),
+                this.fromX, this.fromY, this.toX, this.toY, this.signedPosition)
+        return shipPosition
+    }
+
 }
 
 
 class GameSchemaV1 : MappedSchema(
         schemaFamily = GameSchema::class.java,
         version = 1,
-        mappedTypes = listOf(Game::class.java, GamePlayers::class.java)) {
+        mappedTypes = listOf(Game::class.java, GamePlayers::class.java, ShipPosition::class.java)) {
 
     @Entity
     @Table(name = "game")
@@ -81,7 +100,7 @@ class GameSchemaV1 : MappedSchema(
             var numberOfPlayers: Int = 4,
 
             @OneToMany(cascade = [(CascadeType.ALL)], fetch = FetchType.EAGER, mappedBy = "game")
-            var gamePlayers: List<GamePlayers> = emptyList()
+            var gamePlayers: List<GamePlayers> = mutableListOf()
 
     ) : Serializable {
 
@@ -119,6 +138,9 @@ class GameSchemaV1 : MappedSchema(
             @Column(name = "player_status")
             var playerStatus: PlayerStatus = PlayerStatus.ACTIVE,
 
+            @Column(name = "player_region")
+            var playerRegion: Int = 0,
+
             @Column(name = "game_fk")
             @Type(type = "uuid-char")
             var game: UUID = UUID.randomUUID()
@@ -136,6 +158,7 @@ class GameSchemaV1 : MappedSchema(
 
             if (gamePlayerName != other.gamePlayerName) return false
             if (playerStatus != other.playerStatus) return false
+            if (playerRegion != other.playerRegion) return false
             if (game != other.game) return false
             if (id != other.id) return false
 
@@ -145,9 +168,73 @@ class GameSchemaV1 : MappedSchema(
         override fun hashCode(): Int {
             var result = gamePlayerName.hashCode()
             result = 31 * result + playerStatus.hashCode()
+            result = 31 * result + playerRegion.hashCode()
             result = 31 * result + game.hashCode()
             result = 31 * result + id.hashCode()
             return result
         }
+    }
+
+    @Entity
+    @Table(name = "ship_position")
+    class ShipPosition(
+
+            @ManyToOne
+            var gamePlayer: GamePlayers? = null,
+
+            @ManyToOne
+            var game: Game? = null,
+
+            @Column(name = "from_x", nullable = true)
+            var fromX: Int? = null,
+
+            @Column(name = "from_y", nullable = true)
+            var fromY: Int? = null,
+
+            @Column(name = "to_x", nullable = true)
+            var toX: Int? = null,
+
+            @Column(name = "to_y", nullable = true)
+            var toY: Int? = null,
+
+            @Column(name = "signed_position")
+            var signedPosition: String = ""
+
+    ) : Serializable {
+
+        @Id
+        @GeneratedValue
+        @Column(name = "ship_position_id")
+        var id: Long = 0
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is ShipPosition) return false
+
+            if (gamePlayer != other.gamePlayer) return false
+            if (game != other.game) return false
+            if (fromX != other.fromX) return false
+            if (fromY != other.fromY) return false
+            if (toX != other.toX) return false
+            if (toY != other.toY) return false
+            if (signedPosition != other.signedPosition) return false
+            if (id != other.id) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = gamePlayer?.hashCode() ?: 0
+            result = 31 * result + (game?.hashCode() ?: 0)
+            result = 31 * result + (fromX ?: 0)
+            result = 31 * result + (fromY ?: 0)
+            result = 31 * result + (toX ?: 0)
+            result = 31 * result + (toY ?: 0)
+            result = 31 * result + signedPosition.hashCode()
+            result = 31 * result + id.hashCode()
+            return result
+        }
+
+
     }
 }

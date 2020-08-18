@@ -19,7 +19,8 @@ class JoinGameFlow(val gameId: UUID) : FlowLogic<GameDTO>() {
         if( game.numberOfPlayers <= game.gamePlayers.count()) {
             throw FlowException("All the seats for this game has taken, better luck next time!")
         }
-        val player = GameSchemaV1.GamePlayers(ourIdentity.name.toString(), PlayerStatus.ACTIVE, game.gameId)
+        val player = GameSchemaV1.GamePlayers(ourIdentity.name.toString(), PlayerStatus.ACTIVE,
+                game.gamePlayers.count() + 1, game.gameId)
         val playerDTO = serviceHub.withEntityManager {
             persist(player)
             GamePlayersDTO.fromEntity(player)
@@ -27,6 +28,7 @@ class JoinGameFlow(val gameId: UUID) : FlowLogic<GameDTO>() {
         val gameDTO = GameDTO.fromEntity(game)
         val sessions = this.serviceHub.identityService.getAllIdentities()
                 .filter { it.owningKey != ourIdentity.owningKey }
+                .filter { !serviceHub.networkMapCache.isNotary(it.party) }
                 .map { initiateFlow(it.party) }
         sessions.forEach { it.send(playerDTO) }
         return gameDTO

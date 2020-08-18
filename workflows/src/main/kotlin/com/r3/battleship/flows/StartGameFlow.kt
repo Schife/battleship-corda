@@ -20,9 +20,10 @@ class StartGameFlow(val gameId: UUID) : FlowLogic<GameDTO>() {
             throw FlowException("All the seats for this game must be filled!")
         }
         val gameDTO = GameDTO.fromEntity(game)
-        serviceHub.cordaService(GameService::class.java).startGameByID(gameDTO.gameId)
+        serviceHub.cordaService(GameService::class.java).setGameStatus(gameDTO.gameId, GameStatus.ACTIVE)
         val sessions = this.serviceHub.identityService.getAllIdentities()
                 .filter { it.owningKey != ourIdentity.owningKey }
+                .filter { !serviceHub.networkMapCache.isNotary(it.party) }
                 .map { initiateFlow(it.party) }
         sessions.forEach { it.send(gameDTO) }
         return gameDTO
@@ -34,6 +35,6 @@ class StartGameFlowResponder(val counterpartySession: FlowSession) : FlowLogic<U
     @Suspendable
     override fun call() {
         val gameDTO = counterpartySession.receive<GameDTO>().unwrap{ it -> it }
-        serviceHub.cordaService(GameService::class.java).startGameByID(gameDTO.gameId)
+        serviceHub.cordaService(GameService::class.java).setGameStatus(gameDTO.gameId, GameStatus.ACTIVE)
     }
 }
