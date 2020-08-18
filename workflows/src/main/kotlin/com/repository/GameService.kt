@@ -83,7 +83,7 @@ class GameService(val serviceHub: ServiceHub) : SingletonSerializeAsToken() {
     fun getPlayerShip(gameId: UUID, player: String): GameSchemaV1.ShipPosition {
         return serviceHub.withEntityManager {
             val query = createQuery("select sp from GameSchemaV1\$ShipPosition sp where sp.game.gameId = :gameId " +
-                    "and sp.gamePlayers.gamePlayerName = :player", GameSchemaV1.ShipPosition::class.java)
+                    "and sp.gamePlayer.gamePlayerName = :player", GameSchemaV1.ShipPosition::class.java)
             query.setParameter("gameId", gameId)
             query.setParameter("player", player)
             query.singleResult
