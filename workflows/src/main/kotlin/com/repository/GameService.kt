@@ -11,13 +11,13 @@ import java.util.*
 @CordaService
 class GameService(val serviceHub: ServiceHub) : SingletonSerializeAsToken() {
 
-    fun findGameById(id: UUID) : GameSchemaV1.Game {
+    fun findGameById(id: UUID): GameSchemaV1.Game {
         return serviceHub.withEntityManager {
             find(GameSchemaV1.Game::class.java, id)
         }
     }
 
-    fun getAllGames() : List<GameSchemaV1.Game> {
+    fun getAllGames(): List<GameSchemaV1.Game> {
         return serviceHub.withEntityManager {
             createQuery("select g from GameSchemaV1\$Game g where g.gameStatus = 'CREATED' OR g.gameStatus = 'ACTIVE'", GameSchemaV1.Game::class.java).resultList
         }
@@ -32,11 +32,29 @@ class GameService(val serviceHub: ServiceHub) : SingletonSerializeAsToken() {
         }
     }
 
-    fun getShipPositionsCountForGame(id: UUID) : Int {
+    fun getShipPositionsCountForGame(id: UUID): Int {
         return serviceHub.withEntityManager {
             val query = createQuery("select count(*) from GameSchemaV1\$ShipPosition sp where sp.game.gameId = :gameId", java.lang.Long::class.java)
             query.setParameter("gameId", id)
             query.singleResult.toInt()
+        }
+    }
+
+    fun getAllHitsForGame(id: UUID): List<GameSchemaV1.HitPosition> {
+        return serviceHub.withEntityManager {
+            val query = createQuery("select hp from GameSchemaV1\$HitPosition hp where hp.game.gameId = :gameId", GameSchemaV1.HitPosition::class.java)
+            query.setParameter("gameId", id)
+            query.resultList
+        }
+    }
+
+    fun getAllHitsForGameAndRound(id: UUID, roundNum: Int): List<GameSchemaV1.HitPosition> {
+        return serviceHub.withEntityManager {
+            val query = createQuery("select hp from GameSchemaV1\$HitPosition hp where hp.game.gameId = :gameId and hp.roundNum = :roundNum",
+                    GameSchemaV1.HitPosition::class.java)
+            query.setParameter("gameId", id)
+            query.setParameter("roundNum", roundNum)
+            query.resultList
         }
     }
 

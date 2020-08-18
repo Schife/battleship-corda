@@ -25,6 +25,12 @@ enum class PlayerStatus {
 }
 
 @CordaSerializable
+enum class HitStatus {
+    HIT,
+    MISS
+}
+
+@CordaSerializable
 data class GameDTO(val gameId: UUID, val createdOn: Instant, val createdBy: String,
                    val gameStatus: GameStatus, val numberOfPlayers: Int, val gamePlayers: List<GamePlayersDTO>) {
 
@@ -64,9 +70,26 @@ data class ShipPositionDTO(val id: Long, val gamePlayer: GamePlayersDTO, val gam
     }
 
     fun toEntity() : GameSchemaV1.ShipPosition {
-        val shipPosition = GameSchemaV1.ShipPosition(this.gamePlayer.toEntity(), this.game.toEntity(),
+        return GameSchemaV1.ShipPosition(this.gamePlayer.toEntity(), this.game.toEntity(),
                 this.fromX, this.fromY, this.toX, this.toY, this.signedPosition)
-        return shipPosition
+    }
+
+}
+
+@CordaSerializable
+data class HitPositionDTO(val gamePlayer: GamePlayersDTO, val game: GameDTO, val hitX: Int, val hitY: Int,
+                          val hitStatus: HitStatus, val roundNum: Int, val id: UUID) {
+
+    companion object {
+        fun fromEntity(entity: GameSchemaV1.HitPosition) =
+                HitPositionDTO(GamePlayersDTO.fromEntity(entity.gamePlayer!!),
+                        GameDTO.fromEntity(entity.game!!), entity.hitX!!, entity.hitY!!, entity.hitStatus,
+                        entity.roundNum!!, entity.id)
+    }
+
+    fun toEntity() : GameSchemaV1.HitPosition {
+        return GameSchemaV1.HitPosition(this.gamePlayer.toEntity(), this.game.toEntity(),
+                this.hitX, this.hitY, this.hitStatus, this.roundNum, this.id)
     }
 
 }
@@ -75,7 +98,8 @@ data class ShipPositionDTO(val id: Long, val gamePlayer: GamePlayersDTO, val gam
 class GameSchemaV1 : MappedSchema(
         schemaFamily = GameSchema::class.java,
         version = 1,
-        mappedTypes = listOf(Game::class.java, GamePlayers::class.java, ShipPosition::class.java)) {
+        mappedTypes = listOf(Game::class.java, GamePlayers::class.java,
+                ShipPosition::class.java, HitPosition::class.java)) {
 
     @Entity
     @Table(name = "game")
@@ -235,6 +259,62 @@ class GameSchemaV1 : MappedSchema(
             return result
         }
 
+
+    }
+
+    @Entity
+    @Table(name = "hit_position")
+    class HitPosition(
+
+            @ManyToOne
+            var gamePlayer: GamePlayers? = null,
+
+            @ManyToOne
+            var game: Game? = null,
+
+            @Column(name = "hit_x", nullable = true)
+            var hitX: Int? = null,
+
+            @Column(name = "hit_y", nullable = true)
+            var hitY: Int? = null,
+
+            @Column(name = "hit_status")
+            var hitStatus: HitStatus = HitStatus.MISS,
+
+            @Column(name = "roundNum")
+            var roundNum: Int? = null,
+
+            @Id
+            @Column(name = "hit_id")
+            var id: UUID = UUID.randomUUID()
+
+    ) : Serializable {
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is HitPosition) return false
+
+            if (gamePlayer != other.gamePlayer) return false
+            if (game != other.game) return false
+            if (hitX != other.hitX) return false
+            if (hitY != other.hitY) return false
+            if (hitStatus != other.hitStatus) return false
+            if (roundNum != other.roundNum) return false
+            if (id != other.id) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = gamePlayer?.hashCode() ?: 0
+            result = 31 * result + (game?.hashCode() ?: 0)
+            result = 31 * result + (hitX ?: 0)
+            result = 31 * result + (hitY ?: 0)
+            result = 31 * result + hitStatus.hashCode()
+            result = 31 * result + (roundNum ?: 0)
+            result = 31 * result + id.hashCode()
+            return result
+        }
 
     }
 }
