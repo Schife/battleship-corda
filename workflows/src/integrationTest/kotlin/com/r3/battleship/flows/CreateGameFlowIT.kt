@@ -35,7 +35,7 @@ class CreateGameFlowIT {
 
     @Test
     fun `test CreateGameFlow happy path`() {
-        val flowFuture = player1.startFlow(CreateGameFlow())
+        val flowFuture = player1.startFlow(CreateGameFlow(4))
         network.runNetwork()
         val game = flowFuture.get()
 
@@ -44,7 +44,7 @@ class CreateGameFlowIT {
 
     @Test
     fun `test GetGamesFlow`() {
-        player1.startFlow(CreateGameFlow())
+        player1.startFlow(CreateGameFlow(4))
         network.runNetwork()
         val flowFuture = player1.startFlow(GetGamesFlow())
         network.runNetwork()
@@ -55,7 +55,7 @@ class CreateGameFlowIT {
 
     @Test
     fun `test JoinGameFlow happy path`() {
-        val flowFuture = player1.startFlow(CreateGameFlow())
+        val flowFuture = player1.startFlow(CreateGameFlow(4))
         network.runNetwork()
         var game = flowFuture.get()
 
@@ -76,7 +76,7 @@ class CreateGameFlowIT {
 
     @Test
     fun `test StartGameFlow happy path`() {
-        val flowFuture = player1.startFlow(CreateGameFlow())
+        val flowFuture = player1.startFlow(CreateGameFlow(4))
         network.runNetwork()
         var game = flowFuture.get()
 

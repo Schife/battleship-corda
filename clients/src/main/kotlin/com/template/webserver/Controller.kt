@@ -4,6 +4,7 @@ package com.template.webserver
 import com.r3.battleship.flows.CreateGameFlow
 import com.r3.battleship.flows.GetGamesFlow
 import com.r3.battleship.flows.JoinGameFlow
+import com.r3.battleship.flows.StartGameFlow
 import com.r3.battleship.schemas.GameDTO
 import net.corda.core.messaging.startFlow
 import org.slf4j.LoggerFactory
@@ -28,9 +29,6 @@ class Controller(rpc: NodeRPCConnection) {
 
     private val proxy = rpc.proxy
 
-    // TODO: store games in the node DB and retrieve them from there.
-    private val games = mutableMapOf<String, Game>()
-
     @GetMapping(value = ["/games"], produces = ["application/json"])
     private fun games(): ResponseEntity<List<Game>> {
         val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
@@ -45,8 +43,6 @@ class Controller(rpc: NodeRPCConnection) {
         val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
         var gameGto: GameDTO = proxy.startFlow(::CreateGameFlow, 2).returnValue.get()
         var newGame = DTOModelHelper.toGame(gameGto, ourIdentity)
-        // TODO: remove this when we've fully setup persistence.
-        games[newGame.id] = newGame
         return ResponseEntity<Game>(newGame, HttpStatus.OK)
     }
 
@@ -60,8 +56,9 @@ class Controller(rpc: NodeRPCConnection) {
 
     @PostMapping(value = ["/{gameId}/startGame"], produces = ["application/json"])
     private fun startGame(@PathVariable gameId:String, @RequestBody request: StartGameRequest): ResponseEntity<Game> {
-        val game = games[gameId]!!
-        game.status = GameStatus.ACTIVE
+        val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
+        val gameDTO = proxy.startFlow(::StartGameFlow, UUID.fromString(gameId)).returnValue.get()
+        val game = DTOModelHelper.toGame(gameDTO, ourIdentity)
         return ResponseEntity<Game>(game, HttpStatus.OK)
     }
 

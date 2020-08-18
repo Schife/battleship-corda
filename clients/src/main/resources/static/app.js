@@ -23,7 +23,7 @@ function populateGamesTable(gamesTableId) {
         },
         success: function(result) {
             hideLoader();
-            var startedGames = result.filter(game => game.status == "STARTED")
+            var startedGames = result.filter(game => game.status == "ACTIVE")
             if (startedGames.length > 0) {
                 var firstStartedGame = result[0]
                 location.replace("/game.html?id=" + firstStartedGame.id)
