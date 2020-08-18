@@ -266,9 +266,23 @@ function renderBoard(payload) {
             drawShip(shipLocation.start.x, shipLocation.start.y, shipLocation.end.x, shipLocation.end.y, player);
         })
         if (payload.winner ==  ourPlayer) {
-            alert("Game finished: you won!");
+            Swal.fire({
+              icon: 'success',
+              title: payload.winner,
+              showConfirmButton: false,
+              imageUrl: '/winner.jpg',
+              imageHeight: 500,
+              timer: 5000
+            })
         } else {
-            alert("Game finished: " + payload.winner + " won!")
+            Swal.fire({
+              icon: 'error',
+              title: 'You lost! The winner is: ' + payload.winner,
+              showConfirmButton: false,
+              imageUrl: '/loser.jpg',
+              imageHeight: 500,
+              timer: 5000
+            })
         }
     }
 }
