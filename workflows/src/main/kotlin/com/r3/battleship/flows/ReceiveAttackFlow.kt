@@ -52,7 +52,7 @@ class ReceiveAttackFlow(val gameId: UUID, val xCoord: Int, val yCoord: Int, val 
     }
 }
 
-@InitiatedBy(JoinGameFlow::class)
+@InitiatedBy(ReceiveAttackFlow::class)
 class ReceiveAttackFlowResponder(val counterpartySession: FlowSession) : FlowLogic<Unit>() {
     @Suspendable
     override fun call() {
