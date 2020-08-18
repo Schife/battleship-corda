@@ -12,6 +12,7 @@ public class GameState implements Serializable {
     private HashMap<String, Boolean> playerState;
     private HashMap<String, HashMap<Coordinate, String>> shots;
     private String winner;
+    private int currentRound;
     private Map<String, Placement> playersShipLocations;
 
     public GameState() {
@@ -25,7 +26,8 @@ public class GameState implements Serializable {
                      HashMap<String, Boolean> playerState,
                      HashMap<String, HashMap<Coordinate, String>> shots,
                      String winner,
-                     Map<String, Placement> playersShipLocations) {
+                     Map<String, Placement> playersShipLocations,
+                     int currentRound) {
         this.placement = placement;
         this.identity = identity;
         this.myTurn = myTurn;
@@ -34,6 +36,7 @@ public class GameState implements Serializable {
         this.shots = shots;
         this.winner = winner;
         this.playersShipLocations = playersShipLocations;
+        this.currentRound = currentRound;
     }
 
     public String getIdentity() {
@@ -100,4 +103,11 @@ public class GameState implements Serializable {
         this.playersShipLocations = playersShipLocations;
     }
 
+    public int getCurrentRound() {
+        return currentRound;
+    }
+
+    public void setCurrentRound(int currentRound) {
+        this.currentRound = currentRound;
+    }
 }

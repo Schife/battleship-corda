@@ -66,6 +66,7 @@ public class DTOModelHelper {
 
             gameState.setStatus(GameStatus.valueOf(latestGame.getGameStatus().name()));
             gameState.setShots(shots);
+            gameState.setCurrentRound(currentRound);
             gameState.setMyTurn(!haveIMovedThisRound);
 
             if (gameState.getStatus() == GameStatus.DONE) {
@@ -76,7 +77,7 @@ public class DTOModelHelper {
         return gameState;
     }
 
-    private static HashMap<String, Boolean> getPlayerStates(List<GamePlayersDTO> gamePlayersDTOList) {
+    public static HashMap<String, Boolean> getPlayerStates(List<GamePlayersDTO> gamePlayersDTOList) {
         HashMap<String, Boolean> playerStates = new HashMap<>();
 
         for (GamePlayersDTO gamePlayer : gamePlayersDTOList) {

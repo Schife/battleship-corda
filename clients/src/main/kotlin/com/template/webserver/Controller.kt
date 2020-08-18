@@ -81,24 +81,38 @@ class Controller(rpc: NodeRPCConnection) {
 
         if (gameId == "1") {
             // initial game state before placing ships
-            gameState = GameState(null, identity, true, GameStatus.ACTIVE, createPlayerStateList(identity), HashMap<String, HashMap<Coordinate, String>>(), null, emptyMap())
+            gameState = GameState(null, identity, true, GameStatus.ACTIVE, createPlayerStateList(identity), HashMap<String, HashMap<Coordinate, String>>(), null, emptyMap(),1 )
         } else if (gameId == "2") {
             // game state after placing ships
-            gameState = GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(identity), createShotList(), null, emptyMap())
+            gameState = GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(identity), createShotList(), null, emptyMap(), 1)
         } else if (gameId == "3") {
             // game state after game finished and we won
-            gameState = GameState(placement, identity, true, GameStatus.DONE, createPlayerStateList(identity), createShotList(), identity, createShipLocations())
+            gameState = GameState(placement, identity, true, GameStatus.DONE, createPlayerStateList(identity), createShotList(), identity, createShipLocations(), 1)
         } else if (gameId == "4") {
             // game state after game finished and someone else won
-            gameState = GameState(placement, identity, true, GameStatus.DONE, createPlayerStateList(identity), createShotList(), "player2", createShipLocations())
+            gameState = GameState(placement, identity, true, GameStatus.DONE, createPlayerStateList(identity), createShotList(), "player2", createShipLocations(), 1)
         } else {
             val hitPositionDTOList : List<HitPositionDTO> = proxy.startFlow(::GetGameHitsFlow, UUID.fromString(gameId)).returnValue.get()
             gameState = DTOModelHelper.toGameState(hitPositionDTOList, identity);
+
+            if (hitPositionDTOList.isEmpty()) {
+                val gamesList : List<GameDTO> = proxy.startFlow(::GetGamesFlow).returnValue.get()
+                var gameDTO = gamesList.find { it.gameId.toString().equals(gameId) }
+                var gamePlayerStates = DTOModelHelper.getPlayerStates(gameDTO?.gamePlayers);
+                gameState.playerState = gamePlayerStates
+                gameState.status = GameStatus.valueOf(gameDTO?.gameStatus.toString())
+            }
+
             val shipPositionDTO: ShipPositionDTO? = proxy.startFlow(::GetMyShipsPositionFlow, UUID.fromString(gameId)).returnValue.get();
             if (shipPositionDTO == null) {
                 gameState.placement = null
             } else {
                 gameState.placement = DTOModelHelper.toPlacement(shipPositionDTO)
+            }
+
+            if (gameState.placement == null && hitPositionDTOList.isEmpty()) {
+                gameState.isMyTurn = true
+                gameState.status = GameStatus.ACTIVE
             }
         }
 
