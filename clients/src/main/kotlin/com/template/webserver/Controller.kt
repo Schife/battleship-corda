@@ -70,7 +70,7 @@ class Controller(rpc: NodeRPCConnection) {
 
     @GetMapping(value = ["/{gameId}/gameState"], produces = ["application/json"])
     private fun getGameState(@PathVariable gameId:String): ResponseEntity<GameState> {
-        var placement = Placement(Coordinate("3","2"), Coordinate("3","5"))
+        var placement = Placement(Coordinate("3","2"), Coordinate("3","4"))
         var identity = proxy.nodeInfo().legalIdentities.first().name.toString()
         //TODO: replace mock data by wiring up backend API
         val gameState = if (gameId == "1") {
@@ -123,9 +123,9 @@ class Controller(rpc: NodeRPCConnection) {
 
     private fun createShipLocations(): Map<String, Placement> {
         return mapOf(
-                "player2" to Placement(Coordinate("3","4"), Coordinate("3","6")),
+                "player2" to Placement(Coordinate("3","3"), Coordinate("3","5")),
                 "player3" to Placement(Coordinate("1","1"), Coordinate("1","3")),
-                "player3" to Placement(Coordinate("4","2"), Coordinate("4","4"))
+                "player4" to Placement(Coordinate("2","2"), Coordinate("4","2"))
         )
     }
 }
