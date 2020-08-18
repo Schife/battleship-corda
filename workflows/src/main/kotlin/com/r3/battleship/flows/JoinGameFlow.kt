@@ -31,7 +31,7 @@ class JoinGameFlow(val gameId: UUID) : FlowLogic<GameDTO>() {
                 gamePlayers = gamePlayersDTO)
         val sessions = this.serviceHub.identityService.getAllIdentities()
                 .filter { it.owningKey != ourIdentity.owningKey }
-                .filter { "GamePlayer" in it.name.organisation }
+                .filter { "Captain" in it.name.organisation }
                 .filter { !serviceHub.networkMapCache.isNotary(it.party) }
                 .map { initiateFlow(it.party) }
         sessions.forEach { it.send(playerDTO) }

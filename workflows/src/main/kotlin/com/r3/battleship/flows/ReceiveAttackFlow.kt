@@ -19,8 +19,8 @@ class ReceiveAttackFlow(val gameId: UUID, val xCoord: Int, val yCoord: Int, val 
         var player = gameService.getPlayerByID(gameId, ourIdentity.name.toString())
         val ship = gameService.getPlayerShip(gameId, ourIdentity.name.toString())
         val hitStatus: HitStatus
-        hitStatus =  if ((ship.fromX?.rangeTo(ship.toX!!)!!.contains(xCoord)) &&
-            (ship.fromY?.rangeTo(ship.toY!!)!!.contains(yCoord))) {
+        hitStatus = if ((ship.fromX?.rangeTo(ship.toX!!)!!.contains(xCoord)) &&
+                (ship.fromY?.rangeTo(ship.toY!!)!!.contains(yCoord))) {
             HitStatus.HIT
         } else
             HitStatus.MISS
@@ -28,11 +28,11 @@ class ReceiveAttackFlow(val gameId: UUID, val xCoord: Int, val yCoord: Int, val 
         if (hitStatus == HitStatus.HIT) {
             var counter = 1
             val hits = gameService.getAllHitsForPlayerInGame(gameId, ourIdentity.name.toString())
-            for(hit in hits) {
-               if(hit.hitStatus == HitStatus.HIT)
-                   counter ++
+            for (hit in hits) {
+                if (hit.hitStatus == HitStatus.HIT)
+                    counter++
             }
-            if(counter == 3){
+            if (counter == 3) {
                 gameService.sinkPlayerByID(gameId, ourIdentity.name.toString())
                 player = gameService.getPlayerByID(gameId, ourIdentity.name.toString())
             }
@@ -45,8 +45,9 @@ class ReceiveAttackFlow(val gameId: UUID, val xCoord: Int, val yCoord: Int, val 
         }
 
         val sessions = this.serviceHub.identityService.getAllIdentities()
-            .filter { it.owningKey != ourIdentity.owningKey }
-            .map { initiateFlow(it.party) }
+                .filter { it.owningKey != ourIdentity.owningKey }
+                .filter { "Captain" in it.name.organisation }
+                .map { initiateFlow(it.party) }
         sessions.forEach { it.send(hitDTO) }
         return hitDTO
     }
