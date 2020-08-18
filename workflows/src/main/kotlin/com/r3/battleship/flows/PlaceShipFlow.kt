@@ -60,9 +60,9 @@ class PlaceShipFlow(val gameId: UUID, val fromX: Int, val fromY: Int, val toX: I
 
     @Suspendable
     private fun verifyOrientation(exception: FlowException, fromX: Int, fromY: Int, toX: Int, toY: Int) {
-        if (toX - fromX == 3 && fromY == toY)
+        if (toX - fromX == 2 && fromY == toY)
             return
-        if (toY - fromY == 3 && fromX == toX)
+        if (toY - fromY == 2 && fromX == toX)
             return
         throw exception
     }
