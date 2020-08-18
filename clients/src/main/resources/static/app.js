@@ -15,20 +15,26 @@ $.urlParam = function(name){
 
 /***** Home page capabilities *****/
 
-function populateGamesTable(gamesTableId) {
+function populateGamesTable() {
+    var gamesTableId = "games-table"
     $.ajax({
         url: "/battleship/games/",
-        beforeSend: function() {
-            showLoader();
-        },
         success: function(result) {
-            hideLoader();
             var startedGames = result.filter(game => game.status == "ACTIVE")
             if (startedGames.length > 0) {
+                showLoader();
                 var firstStartedGame = result[0]
                 location.replace("/game.html?id=" + firstStartedGame.id)
+                hideLoader();
             } else {
-                renderGames(gamesTableId, result)
+                var resultSize = result.length
+                var bodyRowCount = $("#"+gamesTableId+" tbody tr").length;
+                if (bodyRowCount < resultSize) {
+                    showLoader();
+                    $("#"+gamesTableId).find("tbody").html("");
+                    renderGames(gamesTableId, result)
+                    hideLoader();
+                }
             }
         }
     });
@@ -195,3 +201,19 @@ function renderBoard(payload) {
         }
     }
 }
+
+
+const POLL_INTERVAL = 5000;
+
+const poll = async ({ fn, interval}) => {
+    console.log('Start poll...');
+    let attempts = 0;
+
+    const executePoll = async () => {
+        console.log('- poll');
+        const result = await fn();
+        setTimeout(executePoll, interval);
+    };
+
+    return new Promise(executePoll);
+};
