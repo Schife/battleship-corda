@@ -3,6 +3,7 @@ package com.template.webserver
 
 import com.r3.battleship.flows.CreateGameFlow
 import com.r3.battleship.flows.GetGamesFlow
+import com.r3.battleship.flows.JoinGameFlow
 import com.r3.battleship.schemas.GameDTO
 import net.corda.core.messaging.startFlow
 import org.slf4j.LoggerFactory
@@ -32,16 +33,18 @@ class Controller(rpc: NodeRPCConnection) {
 
     @GetMapping(value = ["/games"], produces = ["application/json"])
     private fun games(): ResponseEntity<List<Game>> {
+        val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
         var gameDTOList: List<GameDTO> = proxy.startFlow(::GetGamesFlow).returnValue.get()
         var games = ArrayList<Game>()
-        gameDTOList.forEach { gameDTO -> games.add(DTOModelHelper.toGame(gameDTO)) }
+        gameDTOList.forEach { gameDTO -> games.add(DTOModelHelper.toGame(gameDTO, ourIdentity)) }
         return ResponseEntity<List<Game>>(games, HttpStatus.OK);
     }
 
     @PostMapping(value = ["/createGame"], produces = ["application/json"])
     private fun createGame(): ResponseEntity<Game> {
-        var gameGto: GameDTO = proxy.startFlow(::CreateGameFlow, 4).returnValue.get()
-        var newGame = DTOModelHelper.toGame(gameGto)
+        val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
+        var gameGto: GameDTO = proxy.startFlow(::CreateGameFlow, 2).returnValue.get()
+        var newGame = DTOModelHelper.toGame(gameGto, ourIdentity)
         // TODO: remove this when we've fully setup persistence.
         games[newGame.id] = newGame
         return ResponseEntity<Game>(newGame, HttpStatus.OK)
@@ -50,12 +53,8 @@ class Controller(rpc: NodeRPCConnection) {
     @PostMapping(value = ["{gameId}/joinGame"], produces = ["application/json"])
     private fun joinGame(@PathVariable gameId:String): ResponseEntity<Game> {
         val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
-        val game = games[gameId]!!
-        game.players = game.players + ourIdentity
-        game.isJoinable = false
-        if (game.players.size == 4) {
-            game.isStartable = true
-        }
+        val gameDTO = proxy.startFlow(::JoinGameFlow, UUID.fromString(gameId)).returnValue.get()
+        val game = DTOModelHelper.toGame(gameDTO, ourIdentity)
         return ResponseEntity<Game>(game, HttpStatus.OK)
     }
 
