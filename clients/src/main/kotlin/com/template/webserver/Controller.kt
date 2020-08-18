@@ -1,11 +1,9 @@
 package com.template.webserver
 
 
-import com.r3.battleship.flows.CreateGameFlow
-import com.r3.battleship.flows.GetGamesFlow
-import com.r3.battleship.flows.JoinGameFlow
-import com.r3.battleship.flows.StartGameFlow
+import com.r3.battleship.flows.*
 import com.r3.battleship.schemas.GameDTO
+import com.r3.battleship.schemas.ShipPositionDTO
 import net.corda.core.messaging.startFlow
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -66,6 +64,7 @@ class Controller(rpc: NodeRPCConnection) {
 
     @PostMapping(value = ["/{gameId}/placeShip"], produces = ["application/json"])
     private fun placeShip(@PathVariable gameId:String, @RequestBody placement: Placement): ResponseEntity<String> {
+        val shipPositionDTO: ShipPositionDTO = proxy.startFlow(::PlaceShipFlow, UUID.fromString(gameId), placement.start.x.toInt(), placement.start.y.toInt(), placement.end.x.toInt(), placement.end.y.toInt()).returnValue.get()
         return ResponseEntity("placed", HttpStatus.OK);
     }
 
