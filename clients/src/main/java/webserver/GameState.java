@@ -2,6 +2,7 @@ package webserver;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 
 public class GameState implements Serializable {
     private Placement placement;
@@ -10,14 +11,25 @@ public class GameState implements Serializable {
     private GameStatus status;
     private HashMap<String, Boolean> playerState;
     private HashMap<String, HashMap<Coordinate, String>> shots;
+    private String winner;
+    private Map<String, Placement> playersShipLocations;
 
-    public GameState(Placement placement, String identity, boolean myTurn,  GameStatus status, HashMap<String, Boolean> playerState, HashMap<String, HashMap<Coordinate, String>> shots) {
+    public GameState(Placement placement,
+                     String identity,
+                     boolean myTurn,
+                     GameStatus status,
+                     HashMap<String, Boolean> playerState,
+                     HashMap<String, HashMap<Coordinate, String>> shots,
+                     String winner,
+                     Map<String, Placement> playersShipLocations) {
         this.placement = placement;
         this.identity = identity;
         this.myTurn = myTurn;
         this.status = status;
         this.playerState = playerState;
         this.shots = shots;
+        this.winner = winner;
+        this.playersShipLocations = playersShipLocations;
     }
 
     public String getIdentity() {
@@ -66,5 +78,21 @@ public class GameState implements Serializable {
 
     public void setShots(HashMap<String, HashMap<Coordinate, String>> shots) {
         this.shots = shots;
+    }
+
+    public String getWinner() {
+        return this.winner;
+    }
+
+    public void setWinner(String winner) {
+        this.winner = winner;
+    }
+
+    public Map<String, Placement> getPlayersShipLocations() {
+        return this.playersShipLocations;
+    }
+
+    public void setPlayersShipLocations(Map<String, Placement> playersShipLocations) {
+        this.playersShipLocations = playersShipLocations;
     }
 }
