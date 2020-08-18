@@ -231,7 +231,7 @@ function renderBoard(payload) {
 
     if (payload.status == "ACTIVE") {
         if (payload.placement != null) {
-            drawShip(payload);
+            drawShip(payload.placement.start.x, payload.placement.start.y, payload.placement.end.x, payload.placement.end.y, ourPlayer);
         } else {
             $("#place_ship_action").show();
             $("[id='" + ourPlayer + "']").find(".grid_cell").click(function() {
@@ -241,7 +241,7 @@ function renderBoard(payload) {
             })
         }
     } else if(payload.status == "SHIPS_PLACED") {
-        drawShip(payload);
+        drawShip(payload.placement.start.x, payload.placement.start.y, payload.placement.end.x, payload.placement.end.y, ourPlayer);
         drawShots(payload);
         if (payload.myTurn == true) {
             var otherPlayers = Object.keys(payload.playerState).filter(player => player != ourPlayer)
@@ -258,9 +258,13 @@ function renderBoard(payload) {
             alert("Waiting for other players to complete their turn.")
         }
     } else if(payload.status == "DONE") {
-        drawShip(payload);
+        drawShip(payload.placement.start.x, payload.placement.start.y, payload.placement.end.x, payload.placement.end.y, ourPlayer);
         drawShots(payload);
-        // TODO: draw ship locations of other players (need to think about coloring differently, depending on whether they were hit or not.)
+        var otherPlayers = Object.keys(payload.playersShipLocations);
+        otherPlayers.forEach(player => {
+            var shipLocation = payload.playersShipLocations[player];
+            drawShip(shipLocation.start.x, shipLocation.start.y, shipLocation.end.x, shipLocation.end.y, player);
+        })
         if (payload.winner ==  ourPlayer) {
             alert("Game finished: you won!");
         } else {
@@ -358,13 +362,8 @@ function finaliseShipLocation(gameId) {
     }
 }
 
-function drawShip(payload) {
-    var shipStartRow = parseInt(payload.placement.start.x);
-    var shipStartColumn = parseInt(payload.placement.start.x);
-    var shipEndRow = parseInt(payload.placement.end.x);
-    var shipEndColumn = parseInt(payload.placement.end.y);
-
-    var myMap = $("[id='" + payload.identity + "']");
+function drawShip(shipStartRow, shipStartColumn, shipEndRow, shipEndColumn, player) {
+    var myMap = $("[id='" + player + "']");
     if(shipStartRow == shipEndRow) {
         // Ship aligned horizontally
         for(var column = shipStartColumn; column <= shipEndColumn; column++) {
@@ -373,7 +372,7 @@ function drawShip(payload) {
     } else {
         // Ship aligned vertically
         for(var row = shipStartRow; row <= shipEndRow; row++) {
-            myMap.find("[data-row='" + shipStartRow + "'][data-column='" + shipStartColumn + "']").css('background-color', shipColor)
+            myMap.find("[data-row='" + row + "'][data-column='" + shipStartColumn + "']").css('background-color', shipColor)
         }
     }
 }

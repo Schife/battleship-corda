@@ -27,7 +27,7 @@ class CreateGameFlow(val numberOfPlayers: Int = 2) : FlowLogic<GameDTO>() {
         }
         val sessions = this.serviceHub.identityService.getAllIdentities()
                 .filter { it.owningKey != ourIdentity.owningKey }
-                .filter { "GamePlayer" in it.name.organisation }
+                .filter { "Captain" in it.name.organisation }
                 .filter { !serviceHub.networkMapCache.isNotary(it.party) }
                 .map { initiateFlow(it.party) }
         sessions.forEach { it.send(gameDTO) }

@@ -41,7 +41,7 @@ class PlaceShipFlow(val gameId: UUID, val fromX: Int, val fromY: Int, val toX: I
 
         val sessions = serviceHub.identityService.getAllIdentities()
                 .filter { it.owningKey != ourIdentity.owningKey }
-                .filter { "GamePlayer" in it.name.organisation }
+                .filter { "Captain" in it.name.organisation }
                 .filter { !serviceHub.networkMapCache.isNotary(it.party) }
                 .map { initiateFlow(it.party) }
 
