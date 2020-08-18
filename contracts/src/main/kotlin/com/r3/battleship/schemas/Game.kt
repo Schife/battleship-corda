@@ -160,6 +160,7 @@ class GameSchemaV1 : MappedSchema(
             var gamePlayerName: String = "",
 
             @Column(name = "player_status")
+            @Enumerated(EnumType.STRING)
             var playerStatus: PlayerStatus = PlayerStatus.ACTIVE,
 
             @Column(name = "player_region")
