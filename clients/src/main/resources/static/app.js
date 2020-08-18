@@ -13,6 +13,21 @@ $.urlParam = function(name){
 	return results[1] || 0;
 }
 
+const POLL_INTERVAL = 5000;
+
+const poll = async ({ fn, interval}) => {
+    console.log('Start poll...');
+    let attempts = 0;
+
+    const executePoll = async () => {
+        console.log('- poll');
+        const result = await fn();
+        setTimeout(executePoll, interval);
+    };
+
+    return new Promise(executePoll);
+};
+
 /***** Home page capabilities *****/
 
 function populateGamesTable() {
@@ -169,6 +184,7 @@ function populateGameBoard(gameId) {
 }
 
 function renderBoard(payload) {
+    var ourPlayer = payload.identity;
     var players = Object.keys(payload.playerState);
     var mapRows = 5;
     var mapColumns = 5;
@@ -194,39 +210,113 @@ function renderBoard(payload) {
     }
 
     // Draw ship placement
-    if(payload.status == "SHIPS_PLACED") {
-        var shipStartRow = parseInt(payload.placement.start.x);
-        var shipStartColumn = parseInt(payload.placement.start.x);
-        var shipEndRow = parseInt(payload.placement.end.x);
-        var shipEndColumn = parseInt(payload.placement.end.y);
+    if (payload.status == "ACTIVE") {
+        $("#place_ship_action").show();
+        $("[id='" + ourPlayer + "']").find(".grid_cell").click(function() {
+            var row = $(this).attr("data-row");
+            var column = $(this).attr("data-column");
+            selectCellForShip(row, column, ourPlayer);
+        })
+    } else if(payload.status == "SHIPS_PLACED") {
+        drawShip(payload);
+    } else if(payload.status == "DONE") {
+        alert("Game done!")
+    }
+}
 
-        var myMap = $("[id='" + payload.identity + "']");
-        if(shipStartRow == shipEndRow) {
-            // Ship aligned horizontally
-            for(var column = shipStartColumn; column <= shipEndColumn; column++) {
-                myMap.find("[data-row='" + shipStartRow + "'][data-column='" + column + "']").css('background-color', 'blue');
+/******
+    objects in the form:
+    {
+        row: 1,
+        column: 4
+    }
+
+*******/
+var cellsSelectedForShip = []
+var shipSize = 3;
+
+function selectCellForShip(cellRow, cellColumn, playerName) {
+    var alignmentErrorMessage = "Ships can only be placed horizontally or vertically!";
+
+    if (cellsSelectedForShip.length >= shipSize) {
+        alert("You cannot select more than 3 positions for a ship!");
+    } else if (cellsSelectedForShip.length == 0) {
+        addShipLocation(cellRow, cellColumn, playerName);
+    } else if (cellsSelectedForShip.length == 1) {
+        var alreadySelectedCell = cellsSelectedForShip[0];
+        if (alreadySelectedCell.row != cellRow && alreadySelectedCell != cellColumn) {
+            alert(alignmentErrorMessage);
+        } else if (alreadySelectedCell.row == cellRow) {
+            // ship placed horizontally
+            if (alreadySelectedCell.column != cellColumn + 1 && alreadySelectedCell.column != cellColumn - 1  ) {
+                alert(alignmentErrorMessage);
+            } else {
+                addShipLocation(cellRow, cellColumn, playerName);
             }
         } else {
-            // Ship aligned vertically
-            for(var row = shipStartRow; row <= shipEndRow; row++) {
-                myMap.find("[data-row='" + shipStartRow + "'][data-column='" + shipStartColumn + "']").css('background-color', 'blue')
+            // ship placed vertically
+            if (alreadySelectedCell.row != cellRow - 1 && alreadySelectedCell.row != cellRow + 1) {
+                alert(alignmentErrorMessage);
+            } else {
+                addShipLocation(cellRow, cellColumn, playerName);
+            }
+        }
+    } else {
+        var cell1 = cellsSelectedForShip[0];
+        var cell2 = cellsSelectedForShip[1];
+        if (cell1.row == cell2.row) {
+            // ship placed horizontally
+            var minColumn = Math.min(cell1.column, cell2.column);
+            var maxColumn = Math.max(cell1.column, cell2.column);
+            if (cell1.row != cellRow || (minColumn != cellColumn + 1 && maxColumn != cellColumn - 1) ) {
+                alert(alignmentErrorMessage);
+            } else {
+                addShipLocation(cellRow, cellColumn, playerName);
+            }
+        } else {
+            // ship placed vertically
+            var minRow = Math.min(cell1.row, cell2.row);
+            var maxRow = Math.max(cell1.row, cell2.row);
+            if (cell1.column != cellColumn || (minRow != cellRow + 1 && maxRow != cellRow - 1) ) {
+                alert(alignmentErrorMessage);
+            } else {
+                addShipLocation(cellRow, cellColumn, playerName);
             }
         }
     }
 }
 
+function addShipLocation(row, column, playerName) {
+    var shipColor = "#9fa9a3"; // overriding color via JS
+    cellsSelectedForShip.push({ row: row, column: column});
+    $("[id='" + playerName + "']").find("[data-row='" + row + "'][data-column='" + column + "']").css("background-color", shipColor);
+}
 
-const POLL_INTERVAL = 5000;
+function finaliseShipLocation() {
+    if (cellsSelectedForShip.length < shipSize) {
+        alert("The ship size is " + shipSize + ", you need to select more cells.");
+    } else {
+        alert("Ship location selected.");
+        //TODO: add call to back-end to notify about selected ship location.
+    }
+}
 
-const poll = async ({ fn, interval}) => {
-    console.log('Start poll...');
-    let attempts = 0;
+function drawShip(payload) {
+    var shipStartRow = parseInt(payload.placement.start.x);
+    var shipStartColumn = parseInt(payload.placement.start.x);
+    var shipEndRow = parseInt(payload.placement.end.x);
+    var shipEndColumn = parseInt(payload.placement.end.y);
 
-    const executePoll = async () => {
-        console.log('- poll');
-        const result = await fn();
-        setTimeout(executePoll, interval);
-    };
-
-    return new Promise(executePoll);
-};
+    var myMap = $("[id='" + payload.identity + "']");
+    if(shipStartRow == shipEndRow) {
+        // Ship aligned horizontally
+        for(var column = shipStartColumn; column <= shipEndColumn; column++) {
+            myMap.find("[data-row='" + shipStartRow + "'][data-column='" + column + "']").css('background-color', 'blue');
+        }
+    } else {
+        // Ship aligned vertically
+        for(var row = shipStartRow; row <= shipEndRow; row++) {
+            myMap.find("[data-row='" + shipStartRow + "'][data-column='" + shipStartColumn + "']").css('background-color', 'blue')
+        }
+    }
+}
