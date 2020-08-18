@@ -124,6 +124,8 @@ class Controller(rpc: NodeRPCConnection) {
                 //val playersShipLocationsDTO: Map<String,ShipPositionDTO>? = proxy.startFlow(::GetMyShipsPositionFlow, UUID.fromString(gameId)).returnValue.get();
                 //gameState.playersShipLocations = DTOModelHelper.toPlayersShipLocations()
             }
+
+            //TODO hack as this isnt being set currently
             gameState.isMyTurn = true
         }
 
