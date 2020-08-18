@@ -67,14 +67,26 @@ public class DTOModelHelper {
             gameState.setStatus(GameStatus.valueOf(latestGame.getGameStatus().name()));
             gameState.setShots(shots);
             gameState.setCurrentRound(currentRound);
-            gameState.setMyTurn(!haveIMovedThisRound);
 
+            gameState.setMyTurn(true);
+            //gameState.setMyTurn(!haveIMovedThisRound);
             if (gameState.getStatus() == GameStatus.DONE) {
                 gameState.setWinner(getWinner(playerStates));
             }
         }
 
         return gameState;
+    }
+
+    public static HashMap<String, Placement> toPlayersShipLocations(HashMap<String, ShipPositionDTO> shipPositionsDTO) {
+        HashMap<String, Placement> playerPositions = new HashMap<>();
+
+        for (String gamePlayer : shipPositionsDTO.keySet()) {
+            Placement placement = DTOModelHelper.toPlacement(shipPositionsDTO.get(gamePlayer));
+            playerPositions.put(gamePlayer, placement);
+        }
+
+        return playerPositions;
     }
 
     public static HashMap<String, Boolean> getPlayerStates(List<GamePlayersDTO> gamePlayersDTOList) {

@@ -102,8 +102,7 @@ class Controller(rpc: NodeRPCConnection) {
             gameState = DTOModelHelper.toGameState(hitPositionDTOList, identity);
 
             if (hitPositionDTOList.isEmpty()) {
-                val gamesList : List<GameDTO> = proxy.startFlow(::GetGamesFlow).returnValue.get()
-                var gameDTO = gamesList.find { it.gameId.toString().equals(gameId) }
+                var gameDTO : GameDTO = proxy.startFlow(::GetGameByIDFlow, UUID.fromString(gameId)).returnValue.get()
                 var gamePlayerStates = DTOModelHelper.getPlayerStates(gameDTO?.gamePlayers);
                 gameState.playerState = gamePlayerStates
                 gameState.status = GameStatus.valueOf(gameDTO?.gameStatus.toString())
@@ -120,6 +119,12 @@ class Controller(rpc: NodeRPCConnection) {
                 gameState.isMyTurn = true
                 gameState.status = GameStatus.ACTIVE
             }
+
+            if (gameState.status == GameStatus.DONE) {
+                //val playersShipLocationsDTO: Map<String,ShipPositionDTO>? = proxy.startFlow(::GetMyShipsPositionFlow, UUID.fromString(gameId)).returnValue.get();
+                //gameState.playersShipLocations = DTOModelHelper.toPlayersShipLocations()
+            }
+            gameState.isMyTurn = true
         }
 
         return ResponseEntity(gameState, HttpStatus.OK);
