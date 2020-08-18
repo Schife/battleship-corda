@@ -199,7 +199,6 @@ function placeShip(gameId, fromX, fromY, toX, toY) {
         },
         success: function( result ) {
             hideLoader();
-            alert("Ship placed successfully");
         }
     });
 }
@@ -209,6 +208,7 @@ function renderBoard(payload) {
     var players = Object.keys(payload.playerState);
     var mapRows = 5;
     var mapColumns = 5;
+    round = payload.currentRound;
 
     // Draw maps
     for(var playerIndex = 1; playerIndex <= players.length; playerIndex++) {
@@ -306,6 +306,7 @@ var cellsSelectedForShip = [];
     }
  ******/
 var cellToAttack = null;
+var round = null;
 var shipSize = 3;
 var shipColor = "#9fa9a3"; // overriding color via JS
 var hitCharacter = "X";
@@ -393,22 +394,25 @@ function drawShip(shipStartColumn, shipStartRow,shipEndColumn, shipEndRow, playe
 }
 
 function drawShots(gameState) {
-    var playersWithShots = Object.keys(gameState.shots);
-    for(var playerIndex = 0; playerIndex < playersWithShots.length; playerIndex++) {
-        var playerName = playersWithShots[playerIndex];
-        var shotLocations = Object.keys(gameState.shots[playerName]);
-        for(var shotIndex = 0; shotIndex < shotLocations.length; shotIndex++) {
-            var shotLocation = shotLocations[shotIndex];
-            var shotRow = shotLocation.split(",")[0];
-            var shotColumn = shotLocation.split(",")[1];
-            var shotResult = gameState.shots[playerName][shotLocation];
-            var cell = $("[id='" + playerName + "']").find("[data-row='" + shotRow + "'][data-column='" + shotColumn + "']");
-            if (shotResult == "HIT") {
-                cell.text(hitCharacter);
-            } else if (shotResult == "MISS") {
-                cell.text(missCharacter);
-            } else {
-                alert("Something went wrong - invalid shot result: " + shotResult);
+    if (gameState.shots != null) {
+        var playersWithShots = Object.keys(gameState.shots);
+
+        for (var playerIndex = 0; playerIndex < playersWithShots.length; playerIndex++) {
+            var playerName = playersWithShots[playerIndex];
+            var shotLocations = Object.keys(gameState.shots[playerName]);
+            for (var shotIndex = 0; shotIndex < shotLocations.length; shotIndex++) {
+                var shotLocation = shotLocations[shotIndex];
+                var shotRow = shotLocation.split(",")[0];
+                var shotColumn = shotLocation.split(",")[1];
+                var shotResult = gameState.shots[playerName][shotLocation];
+                var cell = $("[id='" + playerName + "']").find("[data-row='" + shotRow + "'][data-column='" + shotColumn + "']");
+                if (shotResult == "HIT") {
+                    cell.text(hitCharacter);
+                } else if (shotResult == "MISS") {
+                    cell.text(missCharacter);
+                } else {
+                    alert("Something went wrong - invalid shot result: " + shotResult);
+                }
             }
         }
     }
@@ -433,11 +437,31 @@ function selectAttackLocation(row, column, playerName) {
     cell.text(targetCharacter);
 }
 
-function performAttack() {
+function performAttack(gameId) {
     if (cellToAttack == null) {
         alert("You need to select a cell to attack first.");
     } else {
-        //TODO: wire-up to the backend to perform attack.
-        alert("Selected target attacked.");
+
+        var data = {
+            "coordinate": {
+                "x" : cellToAttack.row,
+                "y" : cellToAttack.column,
+            },"player": cellToAttack.player
+            , "round" : round
+        }
+
+        $.ajax({
+            url: "/battleship/" + gameId + "/attack" ,
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            dataType: 'json',
+            beforeSend: function() {
+                showLoader();
+            },
+            success: function( result ) {
+                hideLoader();
+            }
+        });
     }
 }

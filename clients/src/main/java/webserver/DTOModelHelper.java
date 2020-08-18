@@ -1,11 +1,13 @@
 package webserver;
 
+import com.r3.battleship.flows.GameSummaryDTO;
 import com.r3.battleship.schemas.*;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DTOModelHelper {
 
@@ -55,7 +57,11 @@ public class DTOModelHelper {
                 HashMap<Coordinate, String> hitMap = new HashMap<>();
                 Coordinate coordinate = new Coordinate(hitPositionDTO.getHitX(), hitPositionDTO.getHitY());
                 hitMap.put(coordinate, hitPositionDTO.getHitStatus().toString());
-                shots.put(hitPositionDTO.getGamePlayer().getGamePlayerName(), hitMap);
+                if (shots.get(hitPositionDTO.getGamePlayer().getGamePlayerName()) != null) {
+                    shots.get(hitPositionDTO.getGamePlayer().getGamePlayerName()).putAll(hitMap);
+                } else {
+                    shots.put(hitPositionDTO.getGamePlayer().getGamePlayerName(), hitMap);
+                }
 
                 //latest game will have latest player states etc
                 latestGame = hitPositionDTO.getGame();
@@ -78,16 +84,17 @@ public class DTOModelHelper {
         return gameState;
     }
 
-    public static HashMap<String, Placement> toPlayersShipLocations(HashMap<String, ShipPositionDTO> shipPositionsDTO) {
+    /*public static HashMap<String, Placement> toPlayersShipLocations(GameSummaryDTO gameSummaryDTO) {
         HashMap<String, Placement> playerPositions = new HashMap<>();
 
-        for (String gamePlayer : shipPositionsDTO.keySet()) {
+        Map<GamePlayersDTO, ShipPositionDTO> gameSummaryDTOPositionsMap =  gameSummaryDTO.getPositionsMap();
+        for (String gamePlayer : gameSummaryDTO.keySet()) {
             Placement placement = DTOModelHelper.toPlacement(shipPositionsDTO.get(gamePlayer));
             playerPositions.put(gamePlayer, placement);
         }
 
         return playerPositions;
-    }
+    }*/
 
     public static HashMap<String, Boolean> getPlayerStates(List<GamePlayersDTO> gamePlayersDTOList) {
         HashMap<String, Boolean> playerStates = new HashMap<>();

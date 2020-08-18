@@ -63,7 +63,7 @@
             $("#place_ship_button").click(function() { finaliseShipLocation(gameId); })
 
             $("#attack_action").hide()
-            $("#attack_button").click(function() { performAttack(); })
+            $("#attack_button").click(function() { performAttack(gameId); })
 
             $("#return_to_games_action").click(function() { location.replace("/index.html") })
 

@@ -6,6 +6,7 @@ import com.r3.battleship.schemas.GameDTO
 import com.r3.battleship.schemas.HitPositionDTO
 import com.r3.battleship.schemas.ShipPositionDTO
 import net.corda.core.flows.FlowException
+import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.startFlow
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -75,6 +76,10 @@ class Controller(rpc: NodeRPCConnection) {
     @PostMapping(value = ["/{gameId}/attack"], produces = ["application/json"])
     private fun placeShip(@PathVariable gameId:String, @RequestBody attackRequest: AttackRequest): ResponseEntity<String> {
         // TODO: wire it up to SendAttackFlow
+        val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
+        val player = CordaX500Name.parse(attackRequest.player)
+
+        val hitPositionDTO: HitPositionDTO = proxy.startFlow(::SendAttackFlow, UUID.fromString(gameId), player.organisation.toString(), attackRequest.coordinate.x,  attackRequest.coordinate.y,  attackRequest.round).returnValue.get()
         return ResponseEntity("placed", HttpStatus.OK);
     }
 
@@ -107,6 +112,7 @@ class Controller(rpc: NodeRPCConnection) {
                 gameState.playerState = gamePlayerStates
                 gameState.status = GameStatus.valueOf(gameDTO?.gameStatus.toString())
                 gameState.isMyTurn = true
+                gameState.currentRound = 1
             }
 
             val shipPositionDTO: ShipPositionDTO? = proxy.startFlow(::GetMyShipsPositionFlow, UUID.fromString(gameId)).returnValue.get();
@@ -121,10 +127,10 @@ class Controller(rpc: NodeRPCConnection) {
                 gameState.status = GameStatus.ACTIVE
             }
 
-            if (gameState.status == GameStatus.DONE) {
-                //val playersShipLocationsDTO: Map<String,ShipPositionDTO>? = proxy.startFlow(::GetMyShipsPositionFlow, UUID.fromString(gameId)).returnValue.get();
-                //gameState.playersShipLocations = DTOModelHelper.toPlayersShipLocations()
-            }
+            /*if (gameState.status == GameStatus.DONE) {
+                val gameSummaryDTO: GameSummaryDTO? = proxy.startFlow(::GetGameSummaryFlow, UUID.fromString(gameId)).returnValue.get();
+                gameState.playersShipLocations = DTOModelHelper.toPlayersShipLocations(gameSummaryDTO)
+            }*/
 
         }
 
