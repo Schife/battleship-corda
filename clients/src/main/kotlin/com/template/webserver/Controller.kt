@@ -57,7 +57,7 @@ class Controller(rpc: NodeRPCConnection) {
     }
 
     @PostMapping(value = ["/{gameId}/startGame"], produces = ["application/json"])
-    private fun startGame(@PathVariable gameId:String, @RequestBody request: StartGameRequest): ResponseEntity<Game> {
+    private fun startGame(@PathVariable gameId:String): ResponseEntity<Game> {
         val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
         val gameDTO = proxy.startFlow(::StartGameFlow, UUID.fromString(gameId)).returnValue.get()
         val game = DTOModelHelper.toGame(gameDTO, ourIdentity)
@@ -73,7 +73,16 @@ class Controller(rpc: NodeRPCConnection) {
     private fun getGameState(@PathVariable gameId:String): ResponseEntity<GameState> {
         var placement = Placement(Coordinate("3","2"), Coordinate("3","5"))
         var identity = proxy.nodeInfo().legalIdentities.first().name.toString()
-        var gameState = GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(), createShotList())
+        //TODO: replace mock data by wiring up backend API
+        val gameState = if (gameId == "1") {
+            // initial game state before placing ships
+            GameState(null, identity, true, GameStatus.ACTIVE, createPlayerStateList(), HashMap<String, HashMap<Coordinate, String>>())
+        } else if (gameId == "2") {
+            // game state after placing ships
+            GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(), createShotList())
+        } else {
+            GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(), createShotList())
+        }
 
         return ResponseEntity(gameState, HttpStatus.OK);
     }
