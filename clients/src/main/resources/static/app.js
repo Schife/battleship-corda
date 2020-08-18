@@ -377,7 +377,7 @@ function finaliseShipLocation(gameId) {
     }
 }
 
-function drawShip(shipStartRow, shipStartColumn, shipEndRow, shipEndColumn, player) {
+function drawShip(shipStartColumn, shipStartRow,shipEndColumn, shipEndRow, player) {
     var myMap = $("[id='" + player + "']");
     if(shipStartRow == shipEndRow) {
         // Ship aligned horizontally

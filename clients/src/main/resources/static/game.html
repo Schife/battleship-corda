@@ -33,6 +33,12 @@
                 <h4>Actions</h4>
             </div>
             <div class="row">
+                <div id="return_to_games_action">
+                    <h5>Return to the games list</h5>
+                    <button id="return_to_games_button" class="btn btn-success">Games List</button>
+                </div>
+            </div>
+            <div class="row">
                 <div id="place_ship_action">
                     <h5>Click 3 boxes to place your ship and then click the button below to finalise the placement.</h5>
                     <button id="place_ship_button" class="btn btn-success">Place ship</button>
@@ -58,6 +64,8 @@
 
             $("#attack_action").hide()
             $("#attack_button").click(function() { performAttack(); })
+
+            $("#return_to_games_action").click(function() { location.replace("/index.html") })
 
             $("#game_id").text(gameId);
             populateGameBoard(gameId);

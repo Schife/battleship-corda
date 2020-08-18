@@ -3,14 +3,18 @@ package com.template.webserver
 
 import com.r3.battleship.flows.*
 import com.r3.battleship.schemas.GameDTO
+import com.r3.battleship.schemas.HitPositionDTO
 import com.r3.battleship.schemas.ShipPositionDTO
+import net.corda.core.flows.FlowException
 import net.corda.core.messaging.startFlow
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import webserver.*
+import java.lang.Exception
 import java.util.*
+import javax.persistence.NoResultException
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 
@@ -64,29 +68,64 @@ class Controller(rpc: NodeRPCConnection) {
 
     @PostMapping(value = ["/{gameId}/placeShip"], produces = ["application/json"])
     private fun placeShip(@PathVariable gameId:String, @RequestBody placement: Placement): ResponseEntity<String> {
-        val shipPositionDTO: ShipPositionDTO = proxy.startFlow(::PlaceShipFlow, UUID.fromString(gameId), placement.start.x.toInt(), placement.start.y.toInt(), placement.end.x.toInt(), placement.end.y.toInt()).returnValue.get()
+        val shipPositionDTO: ShipPositionDTO = proxy.startFlow(::PlaceShipFlow, UUID.fromString(gameId), placement.start.x, placement.start.y, placement.end.x, placement.end.y).returnValue.get()
+        return ResponseEntity("placed", HttpStatus.OK);
+    }
+
+    @PostMapping(value = ["/{gameId}/attack"], produces = ["application/json"])
+    private fun placeShip(@PathVariable gameId:String, @RequestBody attackRequest: AttackRequest): ResponseEntity<String> {
+        // TODO: wire it up to SendAttackFlow
         return ResponseEntity("placed", HttpStatus.OK);
     }
 
     @GetMapping(value = ["/{gameId}/gameState"], produces = ["application/json"])
     private fun getGameState(@PathVariable gameId:String): ResponseEntity<GameState> {
-        var placement = Placement(Coordinate("3","2"), Coordinate("3","4"))
+        var placement = Placement(Coordinate(3,2), Coordinate(3,5))
         var identity = proxy.nodeInfo().legalIdentities.first().name.toString()
-        //TODO: replace mock data by wiring up backend API
-        val gameState = if (gameId == "1") {
+
+        var gameState: GameState
+
+        if (gameId == "1") {
             // initial game state before placing ships
-            GameState(null, identity, true, GameStatus.ACTIVE, createPlayerStateList(identity), HashMap<String, HashMap<Coordinate, String>>(), null, emptyMap())
+            gameState = GameState(null, identity, true, GameStatus.ACTIVE, createPlayerStateList(identity), HashMap<String, HashMap<Coordinate, String>>(), null, emptyMap(),1 )
         } else if (gameId == "2") {
             // game state after placing ships
-            GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(identity), createShotList(), null, emptyMap())
+            gameState = GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(identity), createShotList(), null, emptyMap(), 1)
         } else if (gameId == "3") {
             // game state after game finished and we won
-            GameState(placement, identity, true, GameStatus.DONE, createPlayerStateList(identity), createShotList(), identity, createShipLocations())
+            gameState = GameState(placement, identity, true, GameStatus.DONE, createPlayerStateList(identity), createShotList(), identity, createShipLocations(), 1)
         } else if (gameId == "4") {
             // game state after game finished and someone else won
-            GameState(placement, identity, true, GameStatus.DONE, createPlayerStateList(identity), createShotList(), "player2", createShipLocations())
+            gameState = GameState(placement, identity, true, GameStatus.DONE, createPlayerStateList(identity), createShotList(), "player2", createShipLocations(), 1)
         } else {
-            GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(identity), createShotList(), null, emptyMap())
+            val hitPositionDTOList : List<HitPositionDTO> = proxy.startFlow(::GetGameHitsFlow, UUID.fromString(gameId)).returnValue.get()
+            gameState = DTOModelHelper.toGameState(hitPositionDTOList, identity);
+
+            if (hitPositionDTOList.isEmpty()) {
+                var gameDTO : GameDTO = proxy.startFlow(::GetGameByIDFlow, UUID.fromString(gameId)).returnValue.get()
+                var gamePlayerStates = DTOModelHelper.getPlayerStates(gameDTO?.gamePlayers);
+                gameState.playerState = gamePlayerStates
+                gameState.status = GameStatus.valueOf(gameDTO?.gameStatus.toString())
+                gameState.isMyTurn = true
+            }
+
+            val shipPositionDTO: ShipPositionDTO? = proxy.startFlow(::GetMyShipsPositionFlow, UUID.fromString(gameId)).returnValue.get();
+            if (shipPositionDTO == null) {
+                gameState.placement = null
+            } else {
+                gameState.placement = DTOModelHelper.toPlacement(shipPositionDTO)
+            }
+
+            if (gameState.placement == null && hitPositionDTOList.isEmpty()) {
+                gameState.isMyTurn = true
+                gameState.status = GameStatus.ACTIVE
+            }
+
+            if (gameState.status == GameStatus.DONE) {
+                //val playersShipLocationsDTO: Map<String,ShipPositionDTO>? = proxy.startFlow(::GetMyShipsPositionFlow, UUID.fromString(gameId)).returnValue.get();
+                //gameState.playersShipLocations = DTOModelHelper.toPlayersShipLocations()
+            }
+
         }
 
         return ResponseEntity(gameState, HttpStatus.OK);
@@ -103,10 +142,10 @@ class Controller(rpc: NodeRPCConnection) {
     }
 
     private fun createShotList(): HashMap<String, HashMap<Coordinate, String>> {
-        val c = Coordinate("3","4")
-        val c2 = Coordinate("3","5")
-        val c3 = Coordinate("2","2")
-        val c4 = Coordinate("3","4")
+        val c = Coordinate(3,4)
+        val c2 = Coordinate(3,5)
+        val c3 = Coordinate(2,2)
+        val c4 = Coordinate(3,4)
 
         val map = HashMap<Coordinate, String>()
         map.put(c, "HIT")
@@ -123,9 +162,9 @@ class Controller(rpc: NodeRPCConnection) {
 
     private fun createShipLocations(): Map<String, Placement> {
         return mapOf(
-                "player2" to Placement(Coordinate("3","3"), Coordinate("3","5")),
-                "player3" to Placement(Coordinate("1","1"), Coordinate("1","3")),
-                "player4" to Placement(Coordinate("2","2"), Coordinate("4","2"))
+                "player2" to Placement(Coordinate(3,3), Coordinate(3,5)),
+                "player3" to Placement(Coordinate(1,1), Coordinate(1,3)),
+                "player4" to Placement(Coordinate(2,2), Coordinate(4,2))
         )
     }
 }
