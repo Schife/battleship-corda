@@ -68,6 +68,12 @@ class Controller(rpc: NodeRPCConnection) {
         return ResponseEntity("placed", HttpStatus.OK);
     }
 
+    @PostMapping(value = ["/{gameId}/attack"], produces = ["application/json"])
+    private fun placeShip(@PathVariable gameId:String, @RequestBody attackRequest: AttackRequest): ResponseEntity<String> {
+        // TODO: wire it up to SendAttackFlow
+        return ResponseEntity("placed", HttpStatus.OK);
+    }
+
     @GetMapping(value = ["/{gameId}/gameState"], produces = ["application/json"])
     private fun getGameState(@PathVariable gameId:String): ResponseEntity<GameState> {
         var placement = Placement(Coordinate("3","2"), Coordinate("3","4"))
