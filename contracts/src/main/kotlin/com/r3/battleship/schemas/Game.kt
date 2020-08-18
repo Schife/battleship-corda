@@ -290,6 +290,8 @@ class GameSchemaV1 : MappedSchema(
 
     ) : Serializable {
 
+        var createdOn: Instant = Instant.now()
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is HitPosition) return false
