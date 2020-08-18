@@ -55,12 +55,7 @@ class PlaceShipFlow(val gameId: UUID, val fromX: Int, val fromY: Int, val toX: I
     private fun verifyPosition(playerRegion: Int, fromX: Int, fromY: Int, toX: Int, toY: Int) {
         val exception = FlowException("Ship not placed in players region")
         verifyOrientation(exception, fromX, fromY, toX, toY)
-        when (playerRegion) {
-            1 -> if (fromX !in 1..5 || fromY !in 1..5 || toX !in 1..5 || toY !in 1..5) throw exception
-            2 -> if (fromX !in 6..10 || fromY !in 1..5 || toX !in 6..10 || toY !in 1..5) throw exception
-            3 -> if (fromX !in 1..5 || fromY !in 6..10 || toX !in 1..5 || toY !in 6..10) throw exception
-            4 -> if (fromX !in 6..10 || fromY !in 6..10 || toX !in 6..10 || toY !in 6..10) throw exception
-        }
+        if (fromX !in 1..5 || fromY !in 1..5 || toX !in 1..5 || toY !in 1..5) throw exception
     }
 
     @Suspendable

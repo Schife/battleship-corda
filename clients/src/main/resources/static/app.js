@@ -66,6 +66,7 @@ function createNewGame(gamesTableId) {
     });
 }
 
+
 function renderGames(gamesTableId, gamesPayload) {
     var tableItems = gamesPayload.map(game => {
         var gameIdColumn = $("<td>").text(game.id);
@@ -179,6 +180,27 @@ function populateGameBoard(gameId) {
         success: function(result) {
             hideLoader();
             renderBoard(result);
+        }
+    });
+}
+
+function placeShip(gameId, fromX, fromY, toX, toY) {
+    $.ajax({
+        url: "/battleship/" + gameId + "/placeShip",
+        method: "POST",
+        contentType: "application/json",
+        dataType: 'json',
+        data: JSON.stringify({"start": {"x": fromX, "y": fromY},
+                              "end": {"x": toX, "y": toY}
+                            }),
+        beforeSend: function() {
+            showLoader();
+        },
+        success: function( result ) {
+            hideLoader();
+            var newGames = []
+            newGames.push(result)
+            renderGames(gamesTableId, newGames)
         }
     });
 }
@@ -298,12 +320,12 @@ function addShipLocation(row, column, playerName) {
     $("[id='" + playerName + "']").find("[data-row='" + row + "'][data-column='" + column + "']").css("background-color", shipColor);
 }
 
-function finaliseShipLocation() {
+function finaliseShipLocation(gameId) {
     if (cellsSelectedForShip.length < shipSize) {
         alert("The ship size is " + shipSize + ", you need to select more cells.");
     } else {
-        alert("Ship location selected.");
-        //TODO: add call to back-end to notify about selected ship location.
+        placeShip(gameId, cellsSelectedForShip[0].column, cellsSelectedForShip[0].row,
+                  cellsSelectedForShip[2].column, cellsSelectedForShip[2].row);
     }
 }
 

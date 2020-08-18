@@ -40,9 +40,9 @@
 <script>
         $(document).ready(function(){
             $("#place_ship_action").hide()
-            $("#place_ship_button").click(function() { finaliseShipLocation(); })
-
             var gameId = $.urlParam('id');
+            $("#place_ship_button").click(function() { finaliseShipLocation(gameId); })
+
             $("#game_id").text(gameId);
             populateGameBoard(gameId);
         })

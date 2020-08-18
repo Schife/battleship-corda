@@ -2,7 +2,7 @@ package com.r3.battleship.flows
 
 import com.r3.battleship.repository.GameService
 import com.r3.battleship.schemas.GameDTO
-import com.r3.battleship.schemas.GameStatus
+import net.corda.core.identity.CordaX500Name
 import net.corda.testing.common.internal.testNetworkParameters
 import net.corda.testing.node.MockNetwork
 import net.corda.testing.node.MockNetworkParameters
@@ -28,10 +28,14 @@ class PlaceShipFlowIT {
                         TestCordapp.findCordapp("com.r3.battleship.schemas"),
                         TestCordapp.findCordapp("com.r3.battleship.flows")
                 )))
-        player1 = network.createPartyNode()
-        player2 = network.createPartyNode()
-        player3 = network.createPartyNode()
-        player4 = network.createPartyNode()
+        val player1Name = CordaX500Name("Player1", "GamePlayer", "Dublin", "IE")
+        val player2Name = CordaX500Name("Player2", "GamePlayer", "Dublin", "IE")
+        val player3Name = CordaX500Name("Player3", "GamePlayer", "Dublin", "IE")
+        val player4Name = CordaX500Name("Player4", "GamePlayer", "Dublin", "IE")
+        player1 = network.createPartyNode(player1Name)
+        player2 = network.createPartyNode(player2Name)
+        player3 = network.createPartyNode(player3Name)
+        player4 = network.createPartyNode(player4Name)
     }
 
 
@@ -61,15 +65,15 @@ class PlaceShipFlowIT {
         network.runNetwork()
         placeShipPlayer1Future.get()
 
-        val placeShipPlayer2Future = player2.startFlow(PlaceShipFlow(game.gameId, 7, 2, 7, 5))
+        val placeShipPlayer2Future = player2.startFlow(PlaceShipFlow(game.gameId, 2, 2, 2, 5))
         network.runNetwork()
         placeShipPlayer2Future.get()
 
-        val placeShipPlayer3Future = player3.startFlow(PlaceShipFlow(game.gameId, 1, 6, 1, 9))
+        val placeShipPlayer3Future = player3.startFlow(PlaceShipFlow(game.gameId, 3, 1, 3, 4))
         network.runNetwork()
         placeShipPlayer3Future.get()
 
-        val placeShipPlayer4Future = player4.startFlow(PlaceShipFlow(game.gameId, 7, 6, 10, 6))
+        val placeShipPlayer4Future = player4.startFlow(PlaceShipFlow(game.gameId, 2, 3, 5, 3))
         network.runNetwork()
         placeShipPlayer4Future.get()
 
