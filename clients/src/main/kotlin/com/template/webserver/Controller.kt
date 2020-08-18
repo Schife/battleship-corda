@@ -94,15 +94,11 @@ class Controller(rpc: NodeRPCConnection) {
         } else {
             val hitPositionDTOList : List<HitPositionDTO> = proxy.startFlow(::GetGameHitsFlow, UUID.fromString(gameId)).returnValue.get()
             gameState = DTOModelHelper.toGameState(hitPositionDTOList, identity);
-
-            try {
-                val shipPositionDTO: ShipPositionDTO = proxy.startFlow(::GetMyShipsPositionFlow, UUID.fromString(gameId)).returnValue.get();
+            val shipPositionDTO: ShipPositionDTO? = proxy.startFlow(::GetMyShipsPositionFlow, UUID.fromString(gameId)).returnValue.get();
+            if (shipPositionDTO == null) {
+                gameState.placement = null
+            } else {
                 gameState.placement = DTOModelHelper.toPlacement(shipPositionDTO)
-            } catch(e: Exception) {}
-
-            if (gameState.placement == null && hitPositionDTOList.isEmpty()) {
-                gameState.isMyTurn = true
-                gameState.status = GameStatus.ACTIVE
             }
         }
 

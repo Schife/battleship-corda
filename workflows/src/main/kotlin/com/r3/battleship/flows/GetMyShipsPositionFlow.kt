@@ -7,16 +7,21 @@ import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.InitiatingFlow
 import net.corda.core.flows.StartableByRPC
 import java.util.*
+import javax.persistence.NoResultException
 
 @StartableByRPC
 @InitiatingFlow
-class GetMyShipsPositionFlow(val gameId: UUID) : FlowLogic<ShipPositionDTO>() {
+class GetMyShipsPositionFlow(val gameId: UUID) : FlowLogic<ShipPositionDTO?>() {
 
     @Suspendable
-    override fun call(): ShipPositionDTO {
+    override fun call(): ShipPositionDTO? {
         val gameService = serviceHub.cordaService(GameService::class.java)
-        val shipPosition = gameService.getPlayerShip(gameId, ourIdentity.name.toString())
-        return ShipPositionDTO.fromEntity(shipPosition)
+        return try {
+            val shipPosition = gameService.getPlayerShip(gameId, ourIdentity.name.toString())
+            ShipPositionDTO.fromEntity(shipPosition)
+        } catch (e: NoResultException) {
+            null
+        }
     }
 
 
