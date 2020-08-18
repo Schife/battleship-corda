@@ -25,7 +25,10 @@ class JoinGameFlow(val gameId: UUID) : FlowLogic<GameDTO>() {
             persist(player)
             GamePlayersDTO.fromEntity(player)
         }
-        val gameDTO = GameDTO.fromEntity(game)
+        val gamePlayersDTO = mutableListOf(playerDTO)
+        gamePlayersDTO.addAll(game.gamePlayers.map { GamePlayersDTO.fromEntity(it) })
+        val gameDTO = GameDTO.fromEntity(game).copy(
+                gamePlayers = gamePlayersDTO)
         val sessions = this.serviceHub.identityService.getAllIdentities()
                 .filter { it.owningKey != ourIdentity.owningKey }
                 .filter { !serviceHub.networkMapCache.isNotary(it.party) }

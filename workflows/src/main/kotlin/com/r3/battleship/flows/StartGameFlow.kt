@@ -19,7 +19,7 @@ class StartGameFlow(val gameId: UUID) : FlowLogic<GameDTO>() {
         if( game.numberOfPlayers != game.gamePlayers.count()) {
             throw FlowException("All the seats for this game must be filled!")
         }
-        val gameDTO = GameDTO.fromEntity(game)
+        val gameDTO = GameDTO.fromEntity(game).copy(gameStatus = GameStatus.ACTIVE)
         serviceHub.cordaService(GameService::class.java).setGameStatus(gameDTO.gameId, GameStatus.ACTIVE)
         val sessions = this.serviceHub.identityService.getAllIdentities()
                 .filter { it.owningKey != ourIdentity.owningKey }
