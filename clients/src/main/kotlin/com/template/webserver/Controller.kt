@@ -75,20 +75,20 @@ class Controller(rpc: NodeRPCConnection) {
         //TODO: replace mock data by wiring up backend API
         val gameState = if (gameId == "1") {
             // initial game state before placing ships
-            GameState(null, identity, true, GameStatus.ACTIVE, createPlayerStateList(), HashMap<String, HashMap<Coordinate, String>>())
+            GameState(null, identity, true, GameStatus.ACTIVE, createPlayerStateList(identity), HashMap<String, HashMap<Coordinate, String>>())
         } else if (gameId == "2") {
             // game state after placing ships
-            GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(), createShotList())
+            GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(identity), createShotList())
         } else {
-            GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(), createShotList())
+            GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(identity), createShotList())
         }
 
         return ResponseEntity(gameState, HttpStatus.OK);
     }
 
-    private fun createPlayerStateList(): HashMap<String, Boolean> {
+    private fun createPlayerStateList(ourPlayer: String): HashMap<String, Boolean> {
         val map = HashMap<String, Boolean>()
-        map.put("O=PartyA, L=London, C=GB", true)
+        map.put(ourPlayer, true)
         map.put("player2", true)
         map.put("player3", true)
         map.put("player4", true)
