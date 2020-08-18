@@ -39,10 +39,15 @@
 
     <script>
         $(document).ready(function(){
-            populateGamesTable("games-table");
+            populateGamesTable();
 
             $("#create_game_button").click(function() {
                 createNewGame("games-table");
+            })
+
+            const pollForNewGames = poll({
+                fn: populateGamesTable,
+                interval: POLL_INTERVAL,
             })
         })
     </script>
