@@ -258,8 +258,14 @@ function renderBoard(payload) {
             alert("Waiting for other players to complete their turn.")
         }
     } else if(payload.status == "DONE") {
-        alert("Game done!")
-        //TODO: 1. show details (e.g. who won etc.) 2. draw ship locations of other players (need to think about coloring differently, depending on whether they were hit or not.)
+        drawShip(payload);
+        drawShots(payload);
+        // TODO: draw ship locations of other players (need to think about coloring differently, depending on whether they were hit or not.)
+        if (payload.winner ==  ourPlayer) {
+            alert("Game finished: you won!");
+        } else {
+            alert("Game finished: " + payload.winner + " won!")
+        }
     }
 }
 

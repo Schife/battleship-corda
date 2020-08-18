@@ -75,12 +75,18 @@ class Controller(rpc: NodeRPCConnection) {
         //TODO: replace mock data by wiring up backend API
         val gameState = if (gameId == "1") {
             // initial game state before placing ships
-            GameState(null, identity, true, GameStatus.ACTIVE, createPlayerStateList(identity), HashMap<String, HashMap<Coordinate, String>>())
+            GameState(null, identity, true, GameStatus.ACTIVE, createPlayerStateList(identity), HashMap<String, HashMap<Coordinate, String>>(), null, emptyMap())
         } else if (gameId == "2") {
             // game state after placing ships
-            GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(identity), createShotList())
+            GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(identity), createShotList(), null, emptyMap())
+        } else if (gameId == "3") {
+            // game state after game finished and we won
+            GameState(placement, identity, true, GameStatus.DONE, createPlayerStateList(identity), createShotList(), identity, createShipLocations())
+        } else if (gameId == "4") {
+            // game state after game finished and someone else won
+            GameState(placement, identity, true, GameStatus.DONE, createPlayerStateList(identity), createShotList(), "player2", createShipLocations())
         } else {
-            GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(identity), createShotList())
+            GameState(placement, identity, true, GameStatus.SHIPS_PLACED, createPlayerStateList(identity), createShotList(), null, emptyMap())
         }
 
         return ResponseEntity(gameState, HttpStatus.OK);
@@ -113,6 +119,14 @@ class Controller(rpc: NodeRPCConnection) {
         playerMap.put("player2", map)
 
         return playerMap;
+    }
+
+    private fun createShipLocations(): Map<String, Placement> {
+        return mapOf(
+                "player2" to Placement(Coordinate("3","4"), Coordinate("3","6")),
+                "player3" to Placement(Coordinate("1","1"), Coordinate("1","3")),
+                "player3" to Placement(Coordinate("4","2"), Coordinate("4","4"))
+        )
     }
 }
 
