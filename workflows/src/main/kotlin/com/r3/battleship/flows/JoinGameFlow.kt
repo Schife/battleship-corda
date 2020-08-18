@@ -16,7 +16,7 @@ class JoinGameFlow(val gameId: UUID) : FlowLogic<GameDTO>() {
 
         val gameService = serviceHub.cordaService(GameService::class.java)
         val game = gameService.findGameById(gameId)
-        if( game.numberOfPlayers <= game.gamePlayers.count()) {
+        if (game.numberOfPlayers <= game.gamePlayers.count()) {
             throw FlowException("All the seats for this game has taken, better luck next time!")
         }
         val player = GameSchemaV1.GamePlayers(ourIdentity.name.toString(), PlayerStatus.ACTIVE,
@@ -31,6 +31,7 @@ class JoinGameFlow(val gameId: UUID) : FlowLogic<GameDTO>() {
                 gamePlayers = gamePlayersDTO)
         val sessions = this.serviceHub.identityService.getAllIdentities()
                 .filter { it.owningKey != ourIdentity.owningKey }
+                .filter { "GamePlayer" in it.name.organisation }
                 .filter { !serviceHub.networkMapCache.isNotary(it.party) }
                 .map { initiateFlow(it.party) }
         sessions.forEach { it.send(playerDTO) }
@@ -42,7 +43,7 @@ class JoinGameFlow(val gameId: UUID) : FlowLogic<GameDTO>() {
 class JoinGameFlowResponder(val counterpartySession: FlowSession) : FlowLogic<Unit>() {
     @Suspendable
     override fun call() {
-        val playerDTO = counterpartySession.receive<GamePlayersDTO>().unwrap{ it -> it }
+        val playerDTO = counterpartySession.receive<GamePlayersDTO>().unwrap { it -> it }
         serviceHub.withEntityManager {
             persist(playerDTO.toEntity())
         }

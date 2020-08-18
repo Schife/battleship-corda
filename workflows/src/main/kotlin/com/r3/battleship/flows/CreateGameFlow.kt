@@ -21,12 +21,13 @@ class CreateGameFlow(val numberOfPlayers: Int = 2) : FlowLogic<GameDTO>() {
         val gameId = UUID.randomUUID()
         val player = GameSchemaV1.GamePlayers(ourIdentity.name.toString(), PlayerStatus.ACTIVE, 1, gameId)
         val game = GameSchemaV1.Game(gameId, Instant.now(), ourIdentity.name.toString(), GameStatus.CREATED, numberOfPlayers, listOf(player))
-        val gameDTO =  serviceHub.withEntityManager {
+        val gameDTO = serviceHub.withEntityManager {
             persist(game)
             GameDTO.fromEntity(game)
         }
         val sessions = this.serviceHub.identityService.getAllIdentities()
                 .filter { it.owningKey != ourIdentity.owningKey }
+                .filter { "GamePlayer" in it.name.organisation }
                 .filter { !serviceHub.networkMapCache.isNotary(it.party) }
                 .map { initiateFlow(it.party) }
         sessions.forEach { it.send(gameDTO) }
@@ -38,7 +39,7 @@ class CreateGameFlow(val numberOfPlayers: Int = 2) : FlowLogic<GameDTO>() {
 class CreateGameFlowResponder(val counterpartySession: FlowSession) : FlowLogic<Unit>() {
     @Suspendable
     override fun call() {
-        val gameDTO = counterpartySession.receive<GameDTO>().unwrap{ it -> it }
+        val gameDTO = counterpartySession.receive<GameDTO>().unwrap { it -> it }
         serviceHub.withEntityManager {
             persist(gameDTO.toEntity())
         }
