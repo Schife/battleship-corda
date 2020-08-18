@@ -198,9 +198,7 @@ function placeShip(gameId, fromX, fromY, toX, toY) {
         },
         success: function( result ) {
             hideLoader();
-            var newGames = []
-            newGames.push(result)
-            renderGames(gamesTableId, newGames)
+            alert("Ship placed successfully");
         }
     });
 }
