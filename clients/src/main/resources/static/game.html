@@ -54,6 +54,7 @@
             $("#place_ship_button").click(function() { finaliseShipLocation(); })
 
             $("#attack_action").hide()
+            $("#attack_button").click(function() { performAttack(); })
 
             var gameId = $.urlParam('id');
             $("#game_id").text(gameId);
