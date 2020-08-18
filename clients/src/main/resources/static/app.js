@@ -209,18 +209,24 @@ function renderBoard(payload) {
         $("#game_board").append(playerMap);
     }
 
-    // Draw ship placement
     if (payload.status == "ACTIVE") {
-        $("#place_ship_action").show();
-        $("[id='" + ourPlayer + "']").find(".grid_cell").click(function() {
-            var row = $(this).attr("data-row");
-            var column = $(this).attr("data-column");
-            selectCellForShip(row, column, ourPlayer);
-        })
+        if (payload.placement != null) {
+            drawShip(payload);
+        } else {
+            $("#place_ship_action").show();
+            $("[id='" + ourPlayer + "']").find(".grid_cell").click(function() {
+                var row = $(this).attr("data-row");
+                var column = $(this).attr("data-column");
+                selectCellForShip(row, column, ourPlayer);
+            })
+        }
     } else if(payload.status == "SHIPS_PLACED") {
         drawShip(payload);
+        drawShots(payload);
+        //TODO: check if it's our turn and show actions for selecting an attack
     } else if(payload.status == "DONE") {
         alert("Game done!")
+        //TODO: 1. show details (e.g. who won etc.) 2. draw ship locations of other players (need to think about coloring differently, depending on whether they were hit or not.)
     }
 }
 
@@ -319,4 +325,8 @@ function drawShip(payload) {
             myMap.find("[data-row='" + shipStartRow + "'][data-column='" + shipStartColumn + "']").css('background-color', 'blue')
         }
     }
+}
+
+function drawShots(gameState) {
+
 }
