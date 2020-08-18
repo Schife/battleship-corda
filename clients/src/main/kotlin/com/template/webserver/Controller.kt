@@ -106,6 +106,7 @@ class Controller(rpc: NodeRPCConnection) {
                 var gamePlayerStates = DTOModelHelper.getPlayerStates(gameDTO?.gamePlayers);
                 gameState.playerState = gamePlayerStates
                 gameState.status = GameStatus.valueOf(gameDTO?.gameStatus.toString())
+                gameState.isMyTurn = true
             }
 
             val shipPositionDTO: ShipPositionDTO? = proxy.startFlow(::GetMyShipsPositionFlow, UUID.fromString(gameId)).returnValue.get();
@@ -125,8 +126,6 @@ class Controller(rpc: NodeRPCConnection) {
                 //gameState.playersShipLocations = DTOModelHelper.toPlayersShipLocations()
             }
 
-            //TODO hack as this isnt being set currently
-            gameState.isMyTurn = true
         }
 
         return ResponseEntity(gameState, HttpStatus.OK);
