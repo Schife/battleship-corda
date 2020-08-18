@@ -25,6 +25,8 @@ class Controller(rpc: NodeRPCConnection) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(RestController::class.java)
+
+        private const val GAME_SIZE_PLAYERS = 2
     }
 
     private val proxy = rpc.proxy
@@ -41,7 +43,7 @@ class Controller(rpc: NodeRPCConnection) {
     @PostMapping(value = ["/createGame"], produces = ["application/json"])
     private fun createGame(): ResponseEntity<Game> {
         val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
-        var gameGto: GameDTO = proxy.startFlow(::CreateGameFlow, 2).returnValue.get()
+        var gameGto: GameDTO = proxy.startFlow(::CreateGameFlow, GAME_SIZE_PLAYERS).returnValue.get()
         var newGame = DTOModelHelper.toGame(gameGto, ourIdentity)
         return ResponseEntity<Game>(newGame, HttpStatus.OK)
     }
