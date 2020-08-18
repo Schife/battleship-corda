@@ -245,7 +245,20 @@ function renderBoard(payload) {
     } else if(payload.status == "SHIPS_PLACED") {
         drawShip(payload);
         drawShots(payload);
-        //TODO: check if it's our turn and show actions for selecting an attack
+        if (payload.myTurn == true) {
+            var otherPlayers = Object.keys(payload.playerState).filter(player => player != ourPlayer)
+            otherPlayers.forEach(player => {
+                $("[id='" + player + "']").find(".grid_cell").click(function() {
+                    var row = $(this).attr("data-row");
+                    var column = $(this).attr("data-column");
+                    selectAttackLocation(row, column, player);
+                })
+            })
+
+            $("#attack_action").show();
+        } else {
+            alert("Waiting for other players to complete their turn.")
+        }
     } else if(payload.status == "DONE") {
         alert("Game done!")
         //TODO: 1. show details (e.g. who won etc.) 2. draw ship locations of other players (need to think about coloring differently, depending on whether they were hit or not.)
@@ -260,9 +273,21 @@ function renderBoard(payload) {
     }
 
 *******/
-var cellsSelectedForShip = []
+var cellsSelectedForShip = [];
+/******
+    object in the form:
+    {
+        row: 1,
+        column: 5,
+        player: "player-1"
+    }
+ ******/
+var cellToAttack = null;
 var shipSize = 3;
 var shipColor = "#9fa9a3"; // overriding color via JS
+var hitCharacter = "X";
+var missCharacter = "~";
+var targetCharacter = "O";
 
 function selectCellForShip(cellRow, cellColumn, playerName) {
     var alignmentErrorMessage = "Ships can only be placed horizontally or vertically!";
@@ -361,12 +386,40 @@ function drawShots(gameState) {
             var shotResult = gameState.shots[playerName][shotLocation];
             var cell = $("[id='" + playerName + "']").find("[data-row='" + shotRow + "'][data-column='" + shotColumn + "']");
             if (shotResult == "HIT") {
-                cell.text("X");
+                cell.text(hitCharacter);
             } else if (shotResult == "MISS") {
-                cell.text("~");
+                cell.text(missCharacter);
             } else {
                 alert("Something went wrong - invalid shot result: " + shotResult);
             }
         }
+    }
+}
+
+function selectAttackLocation(row, column, playerName) {
+    if (cellToAttack != null) {
+        $("[id='" + cellToAttack.player + "']").find("[data-row='" + cellToAttack.row + "'][data-column='" + cellToAttack.column + "']").text("");
+    }
+
+    var cell = $("[id='" + playerName + "']").find("[data-row='" + row + "'][data-column='" + column + "']");
+    if (cell.text() == hitCharacter || cell.text() == missCharacter) {
+        alert("Cannot attack a select that has been hit already.");
+        return;
+    }
+
+    cellToAttack = {
+        row: row,
+        column: column,
+        player: playerName
+    };
+    cell.text(targetCharacter);
+}
+
+function performAttack() {
+    if (cellToAttack == null) {
+        alert("You need to select a cell to attack first.");
+    } else {
+        //TODO: wire-up to the backend to perform attack.
+        alert("Selected target attacked.");
     }
 }
