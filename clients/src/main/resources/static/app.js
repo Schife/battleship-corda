@@ -240,6 +240,7 @@ function renderBoard(payload) {
 *******/
 var cellsSelectedForShip = []
 var shipSize = 3;
+var shipColor = "#9fa9a3"; // overriding color via JS
 
 function selectCellForShip(cellRow, cellColumn, playerName) {
     var alignmentErrorMessage = "Ships can only be placed horizontally or vertically!";
@@ -293,7 +294,6 @@ function selectCellForShip(cellRow, cellColumn, playerName) {
 }
 
 function addShipLocation(row, column, playerName) {
-    var shipColor = "#9fa9a3"; // overriding color via JS
     cellsSelectedForShip.push({ row: row, column: column});
     $("[id='" + playerName + "']").find("[data-row='" + row + "'][data-column='" + column + "']").css("background-color", shipColor);
 }
@@ -317,16 +317,34 @@ function drawShip(payload) {
     if(shipStartRow == shipEndRow) {
         // Ship aligned horizontally
         for(var column = shipStartColumn; column <= shipEndColumn; column++) {
-            myMap.find("[data-row='" + shipStartRow + "'][data-column='" + column + "']").css('background-color', 'blue');
+            myMap.find("[data-row='" + shipStartRow + "'][data-column='" + column + "']").css('background-color', shipColor);
         }
     } else {
         // Ship aligned vertically
         for(var row = shipStartRow; row <= shipEndRow; row++) {
-            myMap.find("[data-row='" + shipStartRow + "'][data-column='" + shipStartColumn + "']").css('background-color', 'blue')
+            myMap.find("[data-row='" + shipStartRow + "'][data-column='" + shipStartColumn + "']").css('background-color', shipColor)
         }
     }
 }
 
 function drawShots(gameState) {
-
+    var playersWithShots = Object.keys(gameState.shots);
+    for(var playerIndex = 0; playerIndex < playersWithShots.length; playerIndex++) {
+        var playerName = playersWithShots[playerIndex];
+        var shotLocations = Object.keys(gameState.shots[playerName]);
+        for(var shotIndex = 0; shotIndex < shotLocations.length; shotIndex++) {
+            var shotLocation = shotLocations[shotIndex];
+            var shotRow = shotLocation.split(",")[0];
+            var shotColumn = shotLocation.split(",")[1];
+            var shotResult = gameState.shots[playerName][shotLocation];
+            var cell = $("[id='" + playerName + "']").find("[data-row='" + shotRow + "'][data-column='" + shotColumn + "']");
+            if (shotResult == "HIT") {
+                cell.text("X");
+            } else if (shotResult == "MISS") {
+                cell.text("~");
+            } else {
+                alert("Something went wrong - invalid shot result: " + shotResult);
+            }
+        }
+    }
 }
