@@ -13,7 +13,7 @@ import java.util.*
 
 @StartableByRPC
 @InitiatingFlow
-class CreateGameFlow(val numberOfPlayers: Int = 2) : FlowLogic<GameDTO>() {
+class CreateGameFlow(val numberOfPlayers: Int = 4) : FlowLogic<GameDTO>() {
 
     @Suspendable
     override fun call(): GameDTO {
