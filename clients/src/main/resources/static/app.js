@@ -20,22 +20,15 @@ function populateGamesTable() {
     $.ajax({
         url: "/battleship/games/",
         success: function(result) {
-            var startedGames = result.filter(game => game.status == "ACTIVE")
-            if (startedGames.length > 0) {
+            var resultSize = result.length
+            var bodyRowCount = $("#"+gamesTableId+" tbody tr").length;
+            if (bodyRowCount < resultSize) {
                 showLoader();
-                var firstStartedGame = result[0]
-                location.replace("/game.html?id=" + firstStartedGame.id)
+                $("#"+gamesTableId).find("tbody").html("");
+                renderGames(gamesTableId, result)
                 hideLoader();
-            } else {
-                var resultSize = result.length
-                var bodyRowCount = $("#"+gamesTableId+" tbody tr").length;
-                if (bodyRowCount < resultSize) {
-                    showLoader();
-                    $("#"+gamesTableId).find("tbody").html("");
-                    renderGames(gamesTableId, result)
-                    hideLoader();
-                }
             }
+
         }
     });
 }
@@ -95,7 +88,7 @@ function renderGames(gamesTableId, gamesPayload) {
             var joinColumn = $("<td>").append("-");
         }
 
-        if (isStartable == true) {
+        if (isStartable == true && game.status === "CREATED") {
             var request = {
                 id: game.id
             }
@@ -105,26 +98,45 @@ function renderGames(gamesTableId, gamesPayload) {
                 click: function() {
                     var url = "/battleship/" + game.id + "/startGame";
                     $.ajax({
-                            url: url,
-                            method: "POST",
-                            contentType: "application/json",
-                            data: JSON.stringify(request),
-                            dataType: 'json',
-                            beforeSend: function() {
-                                showLoader();
-                            },
-                            success: function( result ) {
-                                hideLoader();
+                        url: url,
+                        method: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify(request),
+                        dataType: 'json',
+                        beforeSend: function() {
+                            showLoader();
+                        },
+                        success: function( result ) {
+                            hideLoader();
 
-                                location.replace("/game.html?id=" + game.id)
-                            }
-                        });
+                            location.replace("/game.html?id=" + game.id)
+                        }
+                    });
                 }
             });
             var startColumn = $("<td>").append(startButton);
         } else {
             var startColumn = $("<td>").append("-");
         }
+
+        if (game.status === "ACTIVE") {
+            var request = {
+                id: game.id
+            }
+            var playButton = $("<button>", {
+                text: "Play Game",
+                class: "btn btn-success",
+                click: function() {
+                    showLoader();
+                    location.replace("/game.html?id=" + game.id)
+                    hideLoader();
+                }
+            });
+            var playColumn = $("<td>").append(playButton);
+        } else {
+            var playColumn = $("<td>").append("-");
+        }
+
         var playersJoinedColumn = $("<td>").append(playersList);
 
         var gameRow = $("<tr>", { id: game.id });
@@ -132,6 +144,7 @@ function renderGames(gamesTableId, gamesPayload) {
         gameRow.append(playersJoinedColumn);
         gameRow.append(joinColumn);
         gameRow.append(startColumn);
+        gameRow.append(playColumn);
 
         return gameRow;
     });

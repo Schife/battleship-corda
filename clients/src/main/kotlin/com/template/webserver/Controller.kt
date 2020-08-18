@@ -57,7 +57,7 @@ class Controller(rpc: NodeRPCConnection) {
     }
 
     @PostMapping(value = ["/{gameId}/startGame"], produces = ["application/json"])
-    private fun startGame(@PathVariable gameId:String, @RequestBody request: StartGameRequest): ResponseEntity<Game> {
+    private fun startGame(@PathVariable gameId:String): ResponseEntity<Game> {
         val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()
         val gameDTO = proxy.startFlow(::StartGameFlow, UUID.fromString(gameId)).returnValue.get()
         val game = DTOModelHelper.toGame(gameDTO, ourIdentity)
