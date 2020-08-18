@@ -27,11 +27,22 @@
             </div>
         </div>
         <div class="col m-5">
-            <h4>Actions</h4>
-            <div id="place_ship_action">
-                <h5>Click 3 boxes to place your ship and then click the button below to finalise the placement</h5>
-                <button id="place_ship_button" class="btn btn-success">Place ship</button>
+            <div class="row">
+                <h4>Actions</h4>
             </div>
+            <div class="row">
+                <div id="place_ship_action">
+                    <h5>Click 3 boxes to place your ship and then click the button below to finalise the placement.</h5>
+                    <button id="place_ship_button" class="btn btn-success">Place ship</button>
+                </div>
+            </div>
+            <div class="row">
+                <div id="attack_action">
+                    <h5>Select your next attack by clicking on a cell and then pressing button below.</h5>
+                    <button id="attack_button" class="btn btn-success">Attack</button>
+                </div>
+            </div>
+
         </div>
 
     </div>
@@ -41,6 +52,8 @@
         $(document).ready(function(){
             $("#place_ship_action").hide()
             $("#place_ship_button").click(function() { finaliseShipLocation(); })
+
+            $("#attack_action").hide()
 
             var gameId = $.urlParam('id');
             $("#game_id").text(gameId);
