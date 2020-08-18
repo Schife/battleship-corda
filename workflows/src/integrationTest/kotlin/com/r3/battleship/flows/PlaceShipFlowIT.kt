@@ -82,7 +82,7 @@ class PlaceShipFlowIT {
     }
 
     @Test
-    fun `test ReceiveAttackFlow happy path`() {
+    fun `test SendAttackFlow happy path`() {
         val flowFuture = player1.startFlow(CreateGameFlow())
         network.runNetwork()
         var game = flowFuture.get()
@@ -121,20 +121,17 @@ class PlaceShipFlowIT {
 
         validateAllPlayers(game)
 
-        player4.startFlow(ReceiveAttackFlow(game.gameId, 2, 3, 1))
+        player1.startFlow(SendAttackFlow(game.gameId,"Player4", 2, 3, 1))
         network.runNetwork()
-        player4.startFlow(ReceiveAttackFlow(game.gameId, 3, 3, 1))
+        player2.startFlow(SendAttackFlow(game.gameId,"Player4", 3, 3, 1))
         network.runNetwork()
-        player4.startFlow(ReceiveAttackFlow(game.gameId, 4, 3, 1))
+        player3.startFlow(SendAttackFlow(game.gameId,"Player4", 4, 3, 1))
         network.runNetwork()
-        player1.startFlow(ReceiveAttackFlow(game.gameId, 1, 1, 1))
+        player4.startFlow(SendAttackFlow(game.gameId,"Player1", 1, 1, 1))
         network.runNetwork()
 
-        val player1GameService = player1.services.cordaService(GameService::class.java)
         val player4GameService = player4.services.cordaService(GameService::class.java)
-        val totalHits = player1GameService.getAllHitsForGameAndRound(game.gameId, 1)
-        assertEquals(4, totalHits.size)
-        val player4DTO = player4GameService.getPlayerByID(game.gameId, "Player4")
+        val player4DTO = player4GameService.getPlayerByID(game.gameId, player4.info.legalIdentities[0].toString())
         assertEquals(PlayerStatus.SUNKEN, player4DTO.playerStatus)
 
     }
