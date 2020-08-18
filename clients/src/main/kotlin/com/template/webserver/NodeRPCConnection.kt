@@ -26,7 +26,11 @@ private const val CORDA_RPC_PORT = "config.rpc.port"
  * @property proxy The RPC proxy.
  */
 @Component
-open class NodeRPCConnection(): AutoCloseable {
+open class NodeRPCConnection(
+        @Value("\${$CORDA_NODE_HOST}") private val host: String,
+        @Value("\${$CORDA_USER_NAME}") private val username: String,
+        @Value("\${$CORDA_USER_PASSWORD}") private val password: String,
+        @Value("\${$CORDA_RPC_PORT}") private val rpcPort: Int): AutoCloseable {
 
     lateinit var rpcConnection: CordaRPCConnection
         private set
@@ -35,10 +39,10 @@ open class NodeRPCConnection(): AutoCloseable {
 
     @PostConstruct
     fun initialiseNodeRPCConnection() {
-            val rpcAddress = NetworkHostAndPort("localhost", 10006)
-            val rpcClient = CordaRPCClient(rpcAddress)
-            val rpcConnection = rpcClient.start("user1", "test")
-            proxy = rpcConnection.proxy
+        val rpcAddress = NetworkHostAndPort(host, rpcPort)
+        val rpcClient = CordaRPCClient(rpcAddress)
+        val rpcConnection = rpcClient.start(username, password)
+        proxy = rpcConnection.proxy
     }
 
     @PreDestroy
