@@ -189,7 +189,7 @@ function placeShip(gameId, fromX, fromY, toX, toY) {
     $.ajax({
         url: "/battleship/" + gameId + "/placeShip",
         method: "POST",
-        contentType: "application/json",
+        contentType: "text/plain",
         dataType: 'json',
         data: JSON.stringify({"start": {"x": fromX, "y": fromY},
                               "end": {"x": toX, "y": toY}
@@ -199,7 +199,14 @@ function placeShip(gameId, fromX, fromY, toX, toY) {
         },
         success: function( result ) {
             hideLoader();
-        }
+        },
+        error: function(XMLHttpRequest, textStatus, errorThrown) {
+            alert("Attack could not be performed.");
+            console.log("Attack could not be performed.");
+            console.log(JSON.stringify(errorThrown));
+            console.log(textStatus);
+            console.log(XMLHttpRequest);
+         }
     });
 }
 
@@ -322,7 +329,7 @@ function selectCellForShip(cellRow, cellColumn, playerName) {
         addShipLocation(cellRow, cellColumn, playerName);
     } else if (cellsSelectedForShip.length == 1) {
         var alreadySelectedCell = cellsSelectedForShip[0];
-        if (alreadySelectedCell.row != cellRow && alreadySelectedCell != cellColumn) {
+        if (alreadySelectedCell.row != cellRow && alreadySelectedCell.column != cellColumn) {
             alert(alignmentErrorMessage);
         } else if (alreadySelectedCell.row == cellRow) {
             // ship placed horizontally
@@ -453,7 +460,7 @@ function performAttack(gameId) {
         $.ajax({
             url: "/battleship/" + gameId + "/attack" ,
             method: "POST",
-            contentType: "application/json",
+            contentType: "text/plain",
             data: JSON.stringify(data),
             dataType: 'json',
             beforeSend: function() {
@@ -461,7 +468,14 @@ function performAttack(gameId) {
             },
             success: function( result ) {
                 hideLoader();
-            }
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                alert("Attack could not be performed.");
+                console.log("Attack could not be performed.");
+                console.log(errorThrown);
+                console.log(textStatus);
+                console.log(XMLHttpRequest);
+             }
         });
     }
 }
