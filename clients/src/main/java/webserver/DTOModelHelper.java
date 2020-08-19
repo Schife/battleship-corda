@@ -82,7 +82,6 @@ public class DTOModelHelper {
             gameState.setShots(shots);
             gameState.setCurrentRound(currentRound);
 
-            gameState.setMyTurn(!haveIMovedThisRound);
             if (gameState.getStatus() == GameStatus.DONE) {
                 gameState.setWinner(getWinner(playerStates));
             }
