@@ -4,10 +4,7 @@ import com.r3.battleship.flows.GameSummaryDTO;
 import com.r3.battleship.schemas.*;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DTOModelHelper {
 
@@ -38,6 +35,7 @@ public class DTOModelHelper {
         gameState.setIdentity(ourPlayer);
 
         GameDTO latestGame = null;
+
         if (CollectionUtils.isNotEmpty(turns)) {
             int currentRound = 0;
             int currentRoundMovedPlayers = 0;
@@ -52,7 +50,9 @@ public class DTOModelHelper {
                 }
                 currentRoundMovedPlayers++;
 
-                if (ourPlayer.equals(hitPositionDTO.getGamePlayer().getGamePlayerName())) {
+
+
+                if (ourPlayer.equals(hitPositionDTO.getAttacker().getGamePlayerName())) {
                     haveIMovedThisRound = true;
                 }
 
@@ -71,6 +71,11 @@ public class DTOModelHelper {
             }
 
             int countActivePlayers = countActivePlayers(latestGame.getGamePlayers());
+
+            if (countActivePlayers == currentRoundMovedPlayers) {
+                currentRound++;
+            }
+
             if (countActivePlayers == currentRoundMovedPlayers || !haveIMovedThisRound) {
                 gameState.setMyTurn(true);
             }
@@ -82,7 +87,6 @@ public class DTOModelHelper {
             gameState.setShots(shots);
             gameState.setCurrentRound(currentRound);
 
-            gameState.setMyTurn(!haveIMovedThisRound);
             if (gameState.getStatus() == GameStatus.DONE) {
                 gameState.setWinner(getWinner(playerStates));
             }

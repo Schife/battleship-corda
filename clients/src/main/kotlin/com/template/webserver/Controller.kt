@@ -67,13 +67,13 @@ class Controller(rpc: NodeRPCConnection) {
         return ResponseEntity<Game>(game, HttpStatus.OK)
     }
 
-    @PostMapping(value = ["/{gameId}/placeShip"], produces = ["application/json"])
+    @PostMapping(value = ["/{gameId}/placeShip"], consumes = ["application/json"],produces = ["text/plain"])
     private fun placeShip(@PathVariable gameId:String, @RequestBody placement: Placement): ResponseEntity<String> {
         val shipPositionDTO: ShipPositionDTO = proxy.startFlow(::PlaceShipFlow, UUID.fromString(gameId), placement.start.x, placement.start.y, placement.end.x, placement.end.y).returnValue.get()
         return ResponseEntity("placed", HttpStatus.OK);
     }
 
-    @PostMapping(value = ["/{gameId}/attack"], produces = ["application/json"])
+    @PostMapping(value = ["/{gameId}/attack"], consumes = ["application/json"],produces = ["text/plain"])
     private fun placeShip(@PathVariable gameId:String, @RequestBody attackRequest: AttackRequest): ResponseEntity<String> {
         // TODO: wire it up to SendAttackFlow
         val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()

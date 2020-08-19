@@ -15,13 +15,13 @@ $.urlParam = function(name){
 
 const POLL_INTERVAL = 5000;
 
-const poll = async ({ fn, interval}) => {
+const poll = async ({ fn, interval, param}) => {
     console.log('Start poll...');
     let attempts = 0;
 
     const executePoll = async () => {
         console.log('- poll');
-        const result = await fn();
+        const result = await fn(param);
         setTimeout(executePoll, interval);
     };
 
@@ -172,25 +172,29 @@ function renderGames(gamesTableId, gamesPayload) {
 /***** Game board page capabilities *****/
 
 function populateGameBoard(gameId) {
-    $.ajax({
-        url: "/battleship/" + gameId + "/gameState",
-        beforeSend: function() {
-            showLoader();
-        },
-        success: function(result) {
-            hideLoader();
-            renderBoard(result);
-        }
-    });
+
+    if ($("#place_ship_button").is(":hidden")) {
+        $.ajax({
+            url: "/battleship/" + gameId + "/gameState",
+            beforeSend: function () {
+            },
+            success: function (result) {
+                renderBoard(result);
+            }
+        });
+    }
 }
 
 function placeShip(gameId, fromX, fromY, toX, toY) {
     new Audio("ship_horn.mp3").play();
+
+    $("#place_ship_button").hide();
+
     $.ajax({
         url: "/battleship/" + gameId + "/placeShip",
         method: "POST",
         contentType: "application/json",
-        dataType: 'json',
+        dataType: 'text',
         data: JSON.stringify({"start": {"x": fromX, "y": fromY},
                               "end": {"x": toX, "y": toY}
                             }),
@@ -199,16 +203,28 @@ function placeShip(gameId, fromX, fromY, toX, toY) {
         },
         success: function( result ) {
             hideLoader();
-        }
+        },
+        error: function(XMLHttpRequest, textStatus, errorThrown) {
+            hideLoader();
+            alert("Ship could not be placed.");
+            console.log("Attack could not be performed.");
+            console.log(JSON.stringify(errorThrown));
+            console.log(textStatus);
+            console.log(XMLHttpRequest);
+         }
     });
 }
 
 function renderBoard(payload) {
     var ourPlayer = payload.identity;
+    $("#node-name-container").text(ourPlayer);
     var players = Object.keys(payload.playerState);
     var mapRows = 5;
     var mapColumns = 5;
     round = payload.currentRound;
+    myTurn = payload.myTurn;
+
+    $("#game_board").html("");
 
     // Draw maps
     for(var playerIndex = 1; playerIndex <= players.length; playerIndex++) {
@@ -244,7 +260,8 @@ function renderBoard(payload) {
     } else if(payload.status == "SHIPS_PLACED") {
         drawShip(payload.placement.start.x, payload.placement.start.y, payload.placement.end.x, payload.placement.end.y, ourPlayer);
         drawShots(payload);
-        if (payload.myTurn == true) {
+        $("#place_ship_action").hide();
+        if (payload.myTurn === true) {
             var otherPlayers = Object.keys(payload.playerState).filter(player => player != ourPlayer)
             otherPlayers.forEach(player => {
                 $("[id='" + player + "']").find(".grid_cell").click(function() {
@@ -261,6 +278,7 @@ function renderBoard(payload) {
     } else if(payload.status == "DONE") {
         drawShip(payload.placement.start.x, payload.placement.start.y, payload.placement.end.x, payload.placement.end.y, ourPlayer);
         drawShots(payload);
+        $("#attack_action").hide();
         var otherPlayers = Object.keys(payload.playersShipLocations);
         otherPlayers.forEach(player => {
             var shipLocation = payload.playersShipLocations[player];
@@ -286,6 +304,10 @@ function renderBoard(payload) {
             })
         }
     }
+
+    if (!payload.playerState[ourPlayer]) {
+        $("#attack_action").hide()
+    }
 }
 
 /******
@@ -307,6 +329,7 @@ var cellsSelectedForShip = [];
  ******/
 var cellToAttack = null;
 var round = null;
+var myTurn = null;
 var shipSize = 3;
 var shipColor = "#9fa9a3"; // overriding color via JS
 var hitCharacter = "X";
@@ -322,7 +345,7 @@ function selectCellForShip(cellRow, cellColumn, playerName) {
         addShipLocation(cellRow, cellColumn, playerName);
     } else if (cellsSelectedForShip.length == 1) {
         var alreadySelectedCell = cellsSelectedForShip[0];
-        if (alreadySelectedCell.row != cellRow && alreadySelectedCell != cellColumn) {
+        if (alreadySelectedCell.row != cellRow && alreadySelectedCell.column != cellColumn) {
             alert(alignmentErrorMessage);
         } else if (alreadySelectedCell.row == cellRow) {
             // ship placed horizontally
@@ -402,8 +425,8 @@ function drawShots(gameState) {
             var shotLocations = Object.keys(gameState.shots[playerName]);
             for (var shotIndex = 0; shotIndex < shotLocations.length; shotIndex++) {
                 var shotLocation = shotLocations[shotIndex];
-                var shotRow = shotLocation.split(",")[0];
-                var shotColumn = shotLocation.split(",")[1];
+                var shotColumn = shotLocation.split(",")[0];
+                var shotRow = shotLocation.split(",")[1];
                 var shotResult = gameState.shots[playerName][shotLocation];
                 var cell = $("[id='" + playerName + "']").find("[data-row='" + shotRow + "'][data-column='" + shotColumn + "']");
                 if (shotResult == "HIT") {
@@ -441,27 +464,41 @@ function performAttack(gameId) {
     if (cellToAttack == null) {
         alert("You need to select a cell to attack first.");
     } else {
+        myTurn = false
 
         var data = {
             "coordinate": {
-                "x" : cellToAttack.row,
-                "y" : cellToAttack.column,
+                "x" : cellToAttack.column,
+                "y" : cellToAttack.row,
             },"player": cellToAttack.player
             , "round" : round
         }
-
+        var url = "/battleship/" + gameId + "/attack";
         $.ajax({
-            url: "/battleship/" + gameId + "/attack" ,
+            url: url,
             method: "POST",
             contentType: "application/json",
             data: JSON.stringify(data),
-            dataType: 'json',
+            dataType: 'text',
             beforeSend: function() {
                 showLoader();
+                console.log("Attacking using url " + url);
+                console.log(JSON.stringify(data));
             },
             success: function( result ) {
                 hideLoader();
-            }
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                hideLoader();
+                alert("Attack could not be performed.");
+                console.log("Attack could not be performed.");
+                console.log(errorThrown);
+                console.log(textStatus);
+                console.log(XMLHttpRequest);
+             }
         });
+
+        $("#attack_action").hide();
+
     }
 }

@@ -45,7 +45,7 @@ class GameService(val serviceHub: ServiceHub) : SingletonSerializeAsToken() {
 
     fun getAllHitsForGame(id: UUID): List<GameSchemaV1.HitPosition> {
         return serviceHub.withEntityManager {
-            val query = createQuery("select hp from GameSchemaV1\$HitPosition hp where hp.game.gameId = :gameId ORDER BY hp.createdOn DESC", GameSchemaV1.HitPosition::class.java)
+            val query = createQuery("select hp from GameSchemaV1\$HitPosition hp where hp.game.gameId = :gameId ORDER BY hp.createdOn ASC", GameSchemaV1.HitPosition::class.java)
             query.setParameter("gameId", id)
             query.resultList
         }
