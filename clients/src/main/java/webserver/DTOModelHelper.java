@@ -52,7 +52,7 @@ public class DTOModelHelper {
                 }
                 currentRoundMovedPlayers++;
 
-                if (ourPlayer.equals(hitPositionDTO.getGamePlayer().getGamePlayerName())) {
+                if (ourPlayer.equals(hitPositionDTO.getAttacker().getGamePlayerName())) {
                     haveIMovedThisRound = true;
                 }
 

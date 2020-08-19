@@ -193,8 +193,8 @@ function placeShip(gameId, fromX, fromY, toX, toY) {
     $.ajax({
         url: "/battleship/" + gameId + "/placeShip",
         method: "POST",
-        contentType: "text/plain",
-        dataType: 'json',
+        contentType: "application/json",
+        dataType: 'text',
         data: JSON.stringify({"start": {"x": fromX, "y": fromY},
                               "end": {"x": toX, "y": toY}
                             }),
