@@ -68,8 +68,16 @@
             $("#return_to_games_action").click(function() { location.replace("/index.html") })
 
             $("#game_id").text(gameId);
-            populateGameBoard(gameId);
+
+
+            const pollForLatestGame = poll({
+                fn: populateGameBoard,
+                interval: POLL_INTERVAL,
+                param: gameId
+            })
         })
+
+
     </script>
 </body>
 </html>

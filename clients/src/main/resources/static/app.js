@@ -15,13 +15,13 @@ $.urlParam = function(name){
 
 const POLL_INTERVAL = 5000;
 
-const poll = async ({ fn, interval}) => {
+const poll = async ({ fn, interval, param}) => {
     console.log('Start poll...');
     let attempts = 0;
 
     const executePoll = async () => {
         console.log('- poll');
-        const result = await fn();
+        const result = await fn(param);
         setTimeout(executePoll, interval);
     };
 
@@ -172,20 +172,24 @@ function renderGames(gamesTableId, gamesPayload) {
 /***** Game board page capabilities *****/
 
 function populateGameBoard(gameId) {
-    $.ajax({
-        url: "/battleship/" + gameId + "/gameState",
-        beforeSend: function() {
-            showLoader();
-        },
-        success: function(result) {
-            hideLoader();
-            renderBoard(result);
-        }
-    });
+
+    if ($("#place_ship_button").is(":hidden")) {
+        $.ajax({
+            url: "/battleship/" + gameId + "/gameState",
+            beforeSend: function () {
+            },
+            success: function (result) {
+                renderBoard(result);
+            }
+        });
+    }
 }
 
 function placeShip(gameId, fromX, fromY, toX, toY) {
     new Audio("ship_horn.mp3").play();
+
+    $("#place_ship_button").hide();
+
     $.ajax({
         url: "/battleship/" + gameId + "/placeShip",
         method: "POST",
@@ -209,6 +213,9 @@ function renderBoard(payload) {
     var mapRows = 5;
     var mapColumns = 5;
     round = payload.currentRound;
+    myTurn = payload.myTurn;
+
+    $("#game_board").html("");
 
     // Draw maps
     for(var playerIndex = 1; playerIndex <= players.length; playerIndex++) {
@@ -244,7 +251,8 @@ function renderBoard(payload) {
     } else if(payload.status == "SHIPS_PLACED") {
         drawShip(payload.placement.start.x, payload.placement.start.y, payload.placement.end.x, payload.placement.end.y, ourPlayer);
         drawShots(payload);
-        if (payload.myTurn == true) {
+        $("#place_ship_action").hide();
+        if (payload.myTurn === true) {
             var otherPlayers = Object.keys(payload.playerState).filter(player => player != ourPlayer)
             otherPlayers.forEach(player => {
                 $("[id='" + player + "']").find(".grid_cell").click(function() {
@@ -261,6 +269,7 @@ function renderBoard(payload) {
     } else if(payload.status == "DONE") {
         drawShip(payload.placement.start.x, payload.placement.start.y, payload.placement.end.x, payload.placement.end.y, ourPlayer);
         drawShots(payload);
+        $("#attack_action").hide();
         var otherPlayers = Object.keys(payload.playersShipLocations);
         otherPlayers.forEach(player => {
             var shipLocation = payload.playersShipLocations[player];
@@ -307,6 +316,7 @@ var cellsSelectedForShip = [];
  ******/
 var cellToAttack = null;
 var round = null;
+var myTurn = null;
 var shipSize = 3;
 var shipColor = "#9fa9a3"; // overriding color via JS
 var hitCharacter = "X";
@@ -441,6 +451,7 @@ function performAttack(gameId) {
     if (cellToAttack == null) {
         alert("You need to select a cell to attack first.");
     } else {
+        myTurn = false
 
         var data = {
             "coordinate": {
@@ -463,5 +474,8 @@ function performAttack(gameId) {
                 hideLoader();
             }
         });
+
+        $("#attack_action").hide();
+
     }
 }
