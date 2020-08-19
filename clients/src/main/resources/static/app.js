@@ -443,7 +443,11 @@ function drawShots(gameState) {
 
 function selectAttackLocation(row, column, playerName) {
     if (cellToAttack != null) {
-        $("[id='" + cellToAttack.player + "']").find("[data-row='" + cellToAttack.row + "'][data-column='" + cellToAttack.column + "']").text("");
+        var cell = $("[id='" + cellToAttack.player + "']").find("[data-row='" + cellToAttack.row + "'][data-column='" + cellToAttack.column + "']")
+        // reset previously selected attack.
+        if (cell.text() == targetCharacter) {
+            cell.text("")
+        }
     }
 
     var cell = $("[id='" + playerName + "']").find("[data-row='" + row + "'][data-column='" + column + "']");
@@ -487,6 +491,7 @@ function performAttack(gameId) {
             },
             success: function( result ) {
                 hideLoader();
+                populateGameBoard(gameId);
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) {
                 hideLoader();
