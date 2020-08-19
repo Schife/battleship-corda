@@ -77,18 +77,19 @@ data class ShipPositionDTO(val id: Long, val gamePlayer: GamePlayersDTO, val gam
 }
 
 @CordaSerializable
-data class HitPositionDTO(val gamePlayer: GamePlayersDTO, val game: GameDTO, val hitX: Int, val hitY: Int,
+data class HitPositionDTO(val gamePlayer: GamePlayersDTO, val attacker: GamePlayersDTO, val game: GameDTO, val hitX: Int, val hitY: Int,
                           val hitStatus: HitStatus, val roundNum: Int, val id: UUID) {
 
     companion object {
         fun fromEntity(entity: GameSchemaV1.HitPosition) =
                 HitPositionDTO(GamePlayersDTO.fromEntity(entity.gamePlayer!!),
+                        GamePlayersDTO.fromEntity(entity.attacker!!),
                         GameDTO.fromEntity(entity.game!!), entity.hitX!!, entity.hitY!!, entity.hitStatus,
                         entity.roundNum!!, entity.id)
     }
 
     fun toEntity() : GameSchemaV1.HitPosition {
-        return GameSchemaV1.HitPosition(this.gamePlayer.toEntity(), this.game.toEntity(),
+        return GameSchemaV1.HitPosition(this.gamePlayer.toEntity(), this.attacker.toEntity(), this.game.toEntity(),
                 this.hitX, this.hitY, this.hitStatus, this.roundNum, this.id)
     }
 
@@ -271,6 +272,9 @@ class GameSchemaV1 : MappedSchema(
             var gamePlayer: GamePlayers? = null,
 
             @ManyToOne
+            var attacker: GamePlayers? = null,
+
+            @ManyToOne
             var game: Game? = null,
 
             @Column(name = "hit_x", nullable = true)
@@ -298,6 +302,7 @@ class GameSchemaV1 : MappedSchema(
             if (other !is HitPosition) return false
 
             if (gamePlayer != other.gamePlayer) return false
+            if (attacker != other.attacker) return false
             if (game != other.game) return false
             if (hitX != other.hitX) return false
             if (hitY != other.hitY) return false
@@ -310,6 +315,7 @@ class GameSchemaV1 : MappedSchema(
 
         override fun hashCode(): Int {
             var result = gamePlayer?.hashCode() ?: 0
+            result = 31 * result + (attacker?.hashCode() ?: 0)
             result = 31 * result + (game?.hashCode() ?: 0)
             result = 31 * result + (hitX ?: 0)
             result = 31 * result + (hitY ?: 0)
