@@ -457,7 +457,6 @@ function selectAttackLocation(row, column, playerName) {
 function performAttack(gameId) {
     if (cellToAttack == null) {
         alert("You need to select a cell to attack first.");
-        alert("You need to select a cell to attack first.");
     } else {
         myTurn = false
 
