@@ -467,15 +467,17 @@ function performAttack(gameId) {
             },"player": cellToAttack.player
             , "round" : round
         }
-
+        var url = "/battleship/" + gameId + "/attack";
         $.ajax({
-            url: "/battleship/" + gameId + "/attack" ,
+            url: url,
             method: "POST",
             contentType: "application/json",
             data: JSON.stringify(data),
             dataType: 'text',
             beforeSend: function() {
                 showLoader();
+                console.log("Attacking using url " + url);
+                console.log(JSON.stringify(data));
             },
             success: function( result ) {
                 hideLoader();
