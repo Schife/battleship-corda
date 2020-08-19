@@ -127,10 +127,10 @@ class Controller(rpc: NodeRPCConnection) {
                 gameState.status = GameStatus.ACTIVE
             }
 
-            /*if (gameState.status == GameStatus.DONE) {
+            if (gameState.status == GameStatus.DONE) {
                 val gameSummaryDTO: GameSummaryDTO? = proxy.startFlow(::GetGameSummaryFlow, UUID.fromString(gameId)).returnValue.get();
                 gameState.playersShipLocations = DTOModelHelper.toPlayersShipLocations(gameSummaryDTO)
-            }*/
+            }
 
         }
 
