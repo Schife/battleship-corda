@@ -2,11 +2,11 @@ package com.r3.battleship.flows
 
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.battleship.repository.GameService
-import com.r3.battleship.schemas.GamePlayersDTO
-import com.r3.battleship.schemas.GameStatus
-import com.r3.battleship.schemas.PlayerStatus
-import com.r3.battleship.schemas.ShipPositionDTO
+import com.r3.battleship.schemas.*
+import net.corda.core.crypto.Crypto
+import net.corda.core.crypto.DigitalSignature
 import net.corda.core.flows.*
+import net.corda.core.identity.CordaX500Name
 import net.corda.core.serialization.CordaSerializable
 import net.corda.core.utilities.unwrap
 import java.util.*
@@ -39,7 +39,25 @@ class GetGameSummaryFlow(val gameId: UUID) : FlowLogic<GameSummaryDTO>() {
         positionsList.addAll(sessions.map { it.sendAndReceive(ShipPositionDTO::class.java, gameId)
                 .unwrap { it -> it } })
 
+        positionsList.forEach(this::verifySignedPosition)
+
         return GameSummaryDTO(winner, positionsList.map { it.gamePlayer to it }.toMap())
+    }
+
+    @Suspendable
+    private fun verifySignedPosition(shipPositionDTO: ShipPositionDTO) {
+
+        val gameService = serviceHub.cordaService(GameService::class.java)
+
+        val key = serviceHub.identityService.getAllIdentities().single { it.name == CordaX500Name.parse(shipPositionDTO.gamePlayer.gamePlayerName) }.owningKey
+
+        val shipPositionFromDB = gameService.getPlayerShip(shipPositionDTO.game.gameId, shipPositionDTO.gamePlayer.gamePlayerName)
+        val shipCoordinates = ShipCoordinates(gameId, shipPositionDTO.fromX!!, shipPositionDTO.fromY!!, shipPositionDTO.toX!!,
+                shipPositionDTO.toY!!, shipPositionDTO.gamePlayer.gamePlayerName)
+
+        if(!Crypto.doVerify(key, shipPositionFromDB.signedPosition!!, shipCoordinates.toString().toByteArray())) {
+            throw FlowException("Player has cheated!")
+        }
     }
 
 }

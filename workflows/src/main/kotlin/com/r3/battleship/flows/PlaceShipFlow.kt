@@ -6,11 +6,16 @@ import com.r3.battleship.schemas.*
 import net.corda.core.crypto.DigitalSignature
 import net.corda.core.flows.*
 import net.corda.core.internal.signWithCert
+import net.corda.core.serialization.CordaSerializable
 import net.corda.core.utilities.parsePublicKeyBase58
 import net.corda.core.utilities.unwrap
 import java.util.*
 import javax.persistence.Column
 import javax.persistence.ManyToOne
+
+
+@CordaSerializable
+data class ShipCoordinates(val gameId: UUID, val fromX: Int, val fromY: Int, val toX: Int, val toY: Int, val playerName: String)
 
 @StartableByRPC
 @InitiatingFlow
@@ -29,8 +34,9 @@ class PlaceShipFlow(val gameId: UUID, val fromX: Int, val fromY: Int, val toX: I
         verifyPosition(gamePlayer.playerRegion, fromX, fromY, toX, toY)
 
         val shipPosition = GameSchemaV1.ShipPosition(gamePlayer, game, fromX, fromY, toX, toY)
-        val signedPosition = serviceHub.keyManagementService.sign(shipPosition.toString().toByteArray(), ourIdentity.owningKey)
-        shipPosition.signedPosition = String(signedPosition.bytes)
+        val shipCoordinates = ShipCoordinates(gameId, fromX, fromY, toX, toY, gamePlayer.gamePlayerName)
+        val signedPosition = serviceHub.keyManagementService.sign(shipCoordinates.toString().toByteArray(), ourIdentity.owningKey)
+        shipPosition.signedPosition = signedPosition.bytes
 
         val shipPositionDTO = serviceHub.withEntityManager {
             persist(shipPosition)

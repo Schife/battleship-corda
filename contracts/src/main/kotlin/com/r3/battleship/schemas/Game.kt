@@ -60,7 +60,7 @@ data class GamePlayersDTO(val gamePlayerName: String, val playerStatus: PlayerSt
 
 @CordaSerializable
 data class ShipPositionDTO(val id: Long, val gamePlayer: GamePlayersDTO, val game: GameDTO, val fromX: Int?, val fromY: Int?,
-                           val toX: Int?, val toY: Int?, val signedPosition: String) {
+                           val toX: Int?, val toY: Int?, val signedPosition: ByteArray?) {
 
     companion object {
         fun fromEntity(entity: GameSchemaV1.ShipPosition) =
@@ -224,7 +224,7 @@ class GameSchemaV1 : MappedSchema(
             var toY: Int? = null,
 
             @Column(name = "signed_position")
-            var signedPosition: String = ""
+            var signedPosition: ByteArray? = null
 
     ) : Serializable {
 
@@ -256,7 +256,7 @@ class GameSchemaV1 : MappedSchema(
             result = 31 * result + (fromY ?: 0)
             result = 31 * result + (toX ?: 0)
             result = 31 * result + (toY ?: 0)
-            result = 31 * result + signedPosition.hashCode()
+            result = 31 * result + (signedPosition?.hashCode() ?:0)
             result = 31 * result + id.hashCode()
             return result
         }
