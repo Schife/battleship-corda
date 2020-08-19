@@ -7,9 +7,11 @@ import com.r3.battleship.schemas.GameStatus
 import com.r3.battleship.schemas.PlayerStatus
 import com.r3.battleship.schemas.ShipPositionDTO
 import net.corda.core.flows.*
+import net.corda.core.serialization.CordaSerializable
 import net.corda.core.utilities.unwrap
 import java.util.*
 
+@CordaSerializable
 data class GameSummaryDTO(val winner: GamePlayersDTO?, val positionsMap: Map<GamePlayersDTO, ShipPositionDTO>)
 
 @StartableByRPC
