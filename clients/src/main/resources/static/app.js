@@ -302,6 +302,10 @@ function renderBoard(payload) {
             })
         }
     }
+
+    if (!payload.playerState[ourPlayer]) {
+        $("#attack_action").hide()
+    }
 }
 
 /******
