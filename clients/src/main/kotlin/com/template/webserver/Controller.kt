@@ -29,7 +29,7 @@ class Controller(rpc: NodeRPCConnection) {
     companion object {
         private val logger = LoggerFactory.getLogger(RestController::class.java)
 
-        private const val GAME_SIZE_PLAYERS = 2
+        private const val GAME_SIZE_PLAYERS = 4
     }
 
     private val proxy = rpc.proxy
