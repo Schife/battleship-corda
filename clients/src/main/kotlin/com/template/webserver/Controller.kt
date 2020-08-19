@@ -73,7 +73,7 @@ class Controller(rpc: NodeRPCConnection) {
         return ResponseEntity("placed", HttpStatus.OK);
     }
 
-    @PostMapping(value = ["/{gameId}/attack"], produces = ["text/plain"])
+    @PostMapping(value = ["/{gameId}/attack"], consumes = ["application/json"],produces = ["text/plain"])
     private fun placeShip(@PathVariable gameId:String, @RequestBody attackRequest: AttackRequest): ResponseEntity<String> {
         // TODO: wire it up to SendAttackFlow
         val ourIdentity = proxy.nodeInfo().legalIdentities.first().name.toString()

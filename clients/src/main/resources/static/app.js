@@ -471,9 +471,9 @@ function performAttack(gameId) {
         $.ajax({
             url: "/battleship/" + gameId + "/attack" ,
             method: "POST",
-            contentType: "text/plain",
+            contentType: "application/json",
             data: JSON.stringify(data),
-            dataType: 'json',
+            dataType: 'text',
             beforeSend: function() {
                 showLoader();
             },
