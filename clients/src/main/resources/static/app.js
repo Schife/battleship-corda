@@ -419,8 +419,8 @@ function drawShots(gameState) {
             var shotLocations = Object.keys(gameState.shots[playerName]);
             for (var shotIndex = 0; shotIndex < shotLocations.length; shotIndex++) {
                 var shotLocation = shotLocations[shotIndex];
-                var shotRow = shotLocation.split(",")[0];
-                var shotColumn = shotLocation.split(",")[1];
+                var shotColumn = shotLocation.split(",")[0];
+                var shotRow = shotLocation.split(",")[1];
                 var shotResult = gameState.shots[playerName][shotLocation];
                 var cell = $("[id='" + playerName + "']").find("[data-row='" + shotRow + "'][data-column='" + shotColumn + "']");
                 if (shotResult == "HIT") {
@@ -457,13 +457,14 @@ function selectAttackLocation(row, column, playerName) {
 function performAttack(gameId) {
     if (cellToAttack == null) {
         alert("You need to select a cell to attack first.");
+        alert("You need to select a cell to attack first.");
     } else {
         myTurn = false
 
         var data = {
             "coordinate": {
-                "x" : cellToAttack.row,
-                "y" : cellToAttack.column,
+                "x" : cellToAttack.column,
+                "y" : cellToAttack.row,
             },"player": cellToAttack.player
             , "round" : round
         }
