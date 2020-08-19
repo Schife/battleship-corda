@@ -205,7 +205,8 @@ function placeShip(gameId, fromX, fromY, toX, toY) {
             hideLoader();
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
-            alert("Attack could not be performed.");
+            hideLoader();
+            alert("Ship could not be placed.");
             console.log("Attack could not be performed.");
             console.log(JSON.stringify(errorThrown));
             console.log(textStatus);
@@ -216,6 +217,7 @@ function placeShip(gameId, fromX, fromY, toX, toY) {
 
 function renderBoard(payload) {
     var ourPlayer = payload.identity;
+    $("#node-name-container").text(ourPlayer);
     var players = Object.keys(payload.playerState);
     var mapRows = 5;
     var mapColumns = 5;
@@ -487,6 +489,7 @@ function performAttack(gameId) {
                 hideLoader();
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) {
+                hideLoader();
                 alert("Attack could not be performed.");
                 console.log("Attack could not be performed.");
                 console.log(errorThrown);
