@@ -40,6 +40,7 @@ public class DTOModelHelper {
         GameDTO latestGame = null;
         if (CollectionUtils.isNotEmpty(turns)) {
             int currentRound = 0;
+            int currentRoundMovedPlayers = 0;
             boolean haveIMovedThisRound = false;
 
             for (HitPositionDTO hitPositionDTO :turns) {
@@ -47,11 +48,13 @@ public class DTOModelHelper {
                 if (currentRound < hitPositionDTO.getRoundNum()) {
                     currentRound = hitPositionDTO.getRoundNum();
                     haveIMovedThisRound = false;
+                    currentRoundMovedPlayers = 0;
                 }
+                currentRoundMovedPlayers++;
 
                 if (ourPlayer.equals(hitPositionDTO.getGamePlayer().getGamePlayerName())) {
                     haveIMovedThisRound = true;
-                };
+                }
 
                 //add players shots to map
                 HashMap<Coordinate, String> hitMap = new HashMap<>();
@@ -67,6 +70,11 @@ public class DTOModelHelper {
                 latestGame = hitPositionDTO.getGame();
             }
 
+            int countActivePlayers = countActivePlayers(latestGame.getGamePlayers());
+            if (countActivePlayers == currentRoundMovedPlayers || !haveIMovedThisRound) {
+                gameState.setMyTurn(true);
+            }
+
             HashMap<String, Boolean> playerStates = DTOModelHelper.getPlayerStates(latestGame.getGamePlayers());
             gameState.setPlayerState(playerStates);
 
@@ -74,8 +82,7 @@ public class DTOModelHelper {
             gameState.setShots(shots);
             gameState.setCurrentRound(currentRound);
 
-            gameState.setMyTurn(true);
-            //gameState.setMyTurn(!haveIMovedThisRound);
+            gameState.setMyTurn(!haveIMovedThisRound);
             if (gameState.getStatus() == GameStatus.DONE) {
                 gameState.setWinner(getWinner(playerStates));
             }
@@ -84,17 +91,28 @@ public class DTOModelHelper {
         return gameState;
     }
 
-    /*public static HashMap<String, Placement> toPlayersShipLocations(GameSummaryDTO gameSummaryDTO) {
+    private static int countActivePlayers(List<GamePlayersDTO> gamePlayers) {
+        int count = 0;
+        for (GamePlayersDTO gamePlayersDTO : gamePlayers) {
+            if (gamePlayersDTO.getPlayerStatus() == PlayerStatus.ACTIVE) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    public static HashMap<String, Placement> toPlayersShipLocations(GameSummaryDTO gameSummaryDTO) {
         HashMap<String, Placement> playerPositions = new HashMap<>();
 
         Map<GamePlayersDTO, ShipPositionDTO> gameSummaryDTOPositionsMap =  gameSummaryDTO.getPositionsMap();
-        for (String gamePlayer : gameSummaryDTO.keySet()) {
-            Placement placement = DTOModelHelper.toPlacement(shipPositionsDTO.get(gamePlayer));
-            playerPositions.put(gamePlayer, placement);
+        for (GamePlayersDTO gamePlayer : gameSummaryDTOPositionsMap.keySet()) {
+            Placement placement = DTOModelHelper.toPlacement(gameSummaryDTOPositionsMap.get(gamePlayer));
+            playerPositions.put(gamePlayer.getGamePlayerName(), placement);
         }
 
         return playerPositions;
-    }*/
+    }
 
     public static HashMap<String, Boolean> getPlayerStates(List<GamePlayersDTO> gamePlayersDTOList) {
         HashMap<String, Boolean> playerStates = new HashMap<>();
