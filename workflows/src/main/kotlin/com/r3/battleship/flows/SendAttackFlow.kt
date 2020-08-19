@@ -15,12 +15,15 @@ class SendAttackFlow(val gameId: UUID, val player: String, val xCoord: Int, val 
     @Suspendable
     override fun call(): HitPositionDTO {
         val gameService = serviceHub.cordaService(GameService::class.java)
-        val hitDTO = subFlow(ReceiveAttackFlow(gameId, player, xCoord, yCoord, round))
+        val attackerName = ourIdentity.name.toString()
+        val hitDTO = subFlow(ReceiveAttackFlow(gameId, player, attackerName, xCoord, yCoord, round))
         val game = gameService.findGameById(hitDTO.game.gameId)
         val player = gameService.getPlayerByID(game.gameId, hitDTO.gamePlayer.gamePlayerName)
+        val attacker = gameService.getPlayerByID(game.gameId, hitDTO.attacker.gamePlayerName)
         val hit = hitDTO.toEntity()
         hit.gamePlayer = player
         hit.game = game
+        hit.attacker = attacker
         serviceHub.withEntityManager {
             if(hitDTO.gamePlayer.playerStatus == PlayerStatus.SUNKEN) {
                 gameService.sinkPlayerByID(gameId, hitDTO.gamePlayer.gamePlayerName)
@@ -49,9 +52,11 @@ class SendAttackFlowResponder(val counterpartySession: FlowSession) : FlowLogic<
         val hitPositionDTO = counterpartySession.receive<HitPositionDTO>().unwrap { it -> it }
         val game = gameService.findGameById(hitPositionDTO.game.gameId)
         val player = gameService.getPlayerByID(game.gameId, hitPositionDTO.gamePlayer.gamePlayerName)
+        val attacker = gameService.getPlayerByID(game.gameId, hitPositionDTO.attacker.gamePlayerName)
         val hit = hitPositionDTO.toEntity()
         hit.gamePlayer = player
         hit.game = game
+        hit.attacker = attacker
         serviceHub.withEntityManager {
             if(hitPositionDTO.gamePlayer.playerStatus == PlayerStatus.SUNKEN) {
                 gameService.sinkPlayerByID(hitPositionDTO.game.gameId, hitPositionDTO.gamePlayer.gamePlayerName)
@@ -65,17 +70,19 @@ class SendAttackFlowResponder(val counterpartySession: FlowSession) : FlowLogic<
 }
 
 @CordaSerializable
-data class PositionHolder(val gameId: UUID, val xCoord: Int, val yCoord: Int, val round: Int)
+data class PositionHolder(val gameId: UUID, val attacker: String, val xCoord: Int, val yCoord: Int, val round: Int)
 
 @StartableByRPC
 @InitiatingFlow
-class ReceiveAttackFlow(val gameId: UUID, val player: String, val xCoord: Int, val yCoord: Int, val round: Int) : FlowLogic<HitPositionDTO>() {
+class ReceiveAttackFlow(val gameId: UUID, val player: String, val attacker: String,
+                        val xCoord: Int,
+                        val yCoord: Int, val round: Int) : FlowLogic<HitPositionDTO>() {
 
     @Suspendable
     override fun call(): HitPositionDTO {
         val party = this.serviceHub.identityService.partiesFromName(player, true).single()
         val session = initiateFlow(party)
-        val positionHolder = PositionHolder(gameId, xCoord, yCoord, round)
+        val positionHolder = PositionHolder(gameId, attacker, xCoord, yCoord, round)
         return session.sendAndReceive(HitPositionDTO::class.java, positionHolder).unwrap { it -> it }
     }
 }
@@ -113,8 +120,8 @@ class ReceiveAttackFlowResponder(val counterpartySession: FlowSession) : FlowLog
                 }
             }
         }
-
-        val hitPosition = GameSchemaV1.HitPosition(player, game, positionHolder.xCoord, positionHolder.yCoord, hitStatus, positionHolder.round)
+        val attacker = game.gamePlayers.single { it.gamePlayerName == positionHolder.attacker }
+        val hitPosition = GameSchemaV1.HitPosition(player, attacker, game, positionHolder.xCoord, positionHolder.yCoord, hitStatus, positionHolder.round)
         val position = HitPositionDTO.fromEntity(hitPosition)
         counterpartySession.send(position)
         return position
