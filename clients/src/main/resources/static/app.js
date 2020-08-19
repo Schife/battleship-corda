@@ -217,6 +217,7 @@ function placeShip(gameId, fromX, fromY, toX, toY) {
 
 function renderBoard(payload) {
     var ourPlayer = payload.identity;
+    $("#node-name-container").text(ourPlayer);
     var players = Object.keys(payload.playerState);
     var mapRows = 5;
     var mapColumns = 5;
